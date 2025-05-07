@@ -10,7 +10,7 @@ DATA_PATH = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + os.path
 LIDAR_LOCATION_HIGH = "3-2.4"
 LIDAR_LOCATION_LOW = "3-2"
 
-SOFTSKIN_LOCATION = "3-1.1:1.1"
+SOFTSKIN_LOCATION = "1-4.4:1.1"
 SOFTSKIN_BAUDRATE = 115200
 
 INFRARED_LOCATION = "3-2.3"
@@ -28,7 +28,7 @@ DRIVER_BAUDRATE = 115200
 # =======================================================================
 
 #   Softskin Configuration
-SKIN_SENSOR_NUM = 7
+SKIN_SENSOR_NUM = 3
 SKIN_TABLE_PRESSURE = [0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]  # for AC to pressure converting
 SKIN_TABLE_AC = [51, 1912, 2724, 3011, 3163, 3340, 3455, 3522, 3572, 3608, 3633, 3656, 3680, 3697]
 SKIN_MAX_THRESHOLD = 8  # Abnormal maximum pressure
