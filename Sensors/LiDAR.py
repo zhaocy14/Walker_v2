@@ -2,10 +2,12 @@ import serial
 import threading
 import time
 import rplidar
-import
+from sklearn.cluster import KMeans
 from Sensors.SensorConfig import *
 from Sensors.SensorFunctions import *
-
+import cv2
+from PIL import Image
+import math
 
 class LiDAR(object):
     def __init__(self, is_zmq: bool = True):
@@ -88,10 +90,8 @@ class LiDARProcessor(object):
         # center point is the geometry center of the walker
         self.center_point = np.array([WALKER_TOP_BOUNDARY+CENTER_TO_LIDAR,WALKER_LEFT_BOUNDARY])
         self.is_show = is_show
-        # zmq part
-        self.rzo = ReceiveZMQ.get_instance()
-        self.zmq_temp_list = []
-        self.zmq_scan_list = []
+
+
         self.theta_flag = 0
         # obstacle part
         # five regions to detect the obstacle
@@ -245,39 +245,6 @@ class LiDARProcessor(object):
                 # if stop motor, this will
                 self.rplidar.stop_motor()
                 # self.rplidar.disconnect()
-
-    # No need from the ZMQ, just use python rplidar
-    def zmq_get_one_round(self, zmq_data: dict):
-        """use zmq to get lidar data from C++"""
-        theta = float(zmq_data["theta"])
-        dist = float(zmq_data["dist"])
-        quality = float(zmq_data["q"])
-        if theta < self.theta_flag:
-            self.zmq_scan_list = self.zmq_temp_list
-            self.zmq_temp_list = []
-        self.theta_flag = theta
-        self.zmq_temp_list.append([quality, theta, dist])
-
-    def zmq_scan(self, show: bool = False, is_record: bool = False, file_path: str = DATA_PATH):
-        """main procedure of scanning legs and the environment"""
-        if is_record:
-            data_path = file_path + os.path.sep + "leg.txt"
-            file_leg = open(data_path, 'w')
-        while True:
-            for scan in self.rzo.startLidar():
-                self.zmq_get_one_round(scan)
-                if len(self.zmq_temp_list) == 1:
-                    self.scan_raw_data = np.array(self.zmq_scan_list)
-                    self.turn_to_img(self.zmq_scan_list)
-                    self.detect_leg_version(self.kmeans, show=show)
-                    self.detect_obstacle(is_shown=show)
-                    if is_record:
-                        time_index = time.time()
-                        leg_data = np.r_[self.left_leg, self.right_leg]
-                        write_data = leg_data.tolist()
-                        write_data.insert(0, time_index)
-                        file_leg.write(str(write_data) + '\n')
-                        file_leg.flush()
 
     def get_lidar_data(self) -> np.ndarray:
         """
