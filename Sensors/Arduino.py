@@ -23,17 +23,16 @@ class ArduinoModule(object):
 
         port_name, _ = detect_serials(port_key=ARDUINO_LOCATION, sensor_name="Arduino")
         self.serial = serial.Serial(port_name, ARDUINO_BAUDRATE, timeout=None)
-
         # distance data
         self.dis_dim = INFRARED_SENSOR_NUM # number of distance sensors
         self.dis_mean_width = 10  # sliding window width(frame number)
-        self.dis_buffer = np.zeros((self.dis_dim,))   # sliding window
-        self.dis_data = np.zeros((self.dis_mean_width,self.dis_dim))  # distance data
+        self.dis_data = np.zeros((self.dis_dim,))   # sliding window
+        self.dis_buffer = np.zeros((self.dis_mean_width,self.dis_dim))  # distance data
         self.dis_avg = dis_avg
 
         # threading
         self.event = threading.Event()
-        self.thread = threading.Thread(target=self.read_inf_data, args=())
+        self.thread = threading.Thread(target=self.read_dis_data, args=())
 
         # log print
         self.print_out = print_out
@@ -44,7 +43,7 @@ class ArduinoModule(object):
             self.thread.start()
 
 
-    def read_inf_data(self,):
+    def read_dis_data(self,):
         """
         infrared data reading loop.
         """
@@ -53,19 +52,17 @@ class ArduinoModule(object):
                 self.event.wait()
                 one_line_data = self.serial.readline().decode()
                 one_line_data = one_line_data.strip('\r\n').split(',')
-                # print(one_line_data)
-                one_line_data = list(map(float, one_line_data))
                 # sliding window update
-                self.dis_buffer[0:-1, :] = self.dis_buffer[1:self.dis_buffer, :]
+                self.dis_buffer[0:-1, :] = self.dis_buffer[1:self.dis_dim+1, :]
                 self.dis_buffer[-1, :] = np.array(one_line_data).reshape(self.dis_dim)
-                if self.dis_avg:
+                if self.dis_avg: # if avg across the window
                     self.dis_data = np.mean(self.dis_buffer, axis=0)
-                else:
+                else:   # just the latest data
                     self.dis_data = self.dis_buffer[-1, :]
                 if self.print_out:
                     print("Infrared data: ", self.dis_data)
-            except:
-                print("arduino restarting")
+            except Exception as e:
+                print("arduino restarting because", e)
                 time.sleep(0.5)
 
 

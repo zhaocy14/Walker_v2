@@ -19,7 +19,7 @@ INFRARED_BAUDRATE = 115200
 POWER_LOCATION = "3-2.1:1.1"
 POWER_BAUDRATE = 9600
 
-ARDUINO_LOCATION = "3-1.2.3"
+ARDUINO_LOCATION = "1-4.3"
 ARDUINO_BAUDRATE = 9600
 
 DRIVER_LEFT_LOCATION = "3-1.2.2"
@@ -36,7 +36,7 @@ SKIN_SAFE_CHANGE_RATE = 10  # Safe pressure change rate for unlocking the walker
 SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking the walker
 
 # Infrared Sensor
-INFRARED_SENSOR_NUM = 11
+INFRARED_SENSOR_NUM = 9
 
 #   LiDAR Configuration
 # scanning configurations
