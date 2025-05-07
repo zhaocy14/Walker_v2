@@ -10,8 +10,22 @@ import threading
 class DualCamera:
     def __init__(self, show_fps=False, root_path='./'):
         # 初始化两个摄像头
-        self.camera1 = cv2.VideoCapture(0)
-        self.camera2 = cv2.VideoCapture(2)
+
+        # 先确认相机ID
+        camera_id = [-1, -1]
+        for i in range(10):  # 尝试0到9的摄像头索引，可根据实际情况调整范围
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                if camera_id[0] == -1:
+                    camera_id[0] = i
+                    cap.release()
+                elif camera_id[1] == -1:
+                    camera_id[1] = i
+                    cap.release()
+                    break
+        print("Camera IDs:", camera_id)
+        self.camera1 = cv2.VideoCapture(camera_id[0])
+        self.camera2 = cv2.VideoCapture(camera_id[1])
         self.camera1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.camera2.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.set_frame_rate()
@@ -32,8 +46,8 @@ class DualCamera:
 
         # width, height = 1280, 720
         # width, height = 800, 600
-        width, height = 640, 480
-        # width, height = 352, 280
+        # width, height = 640, 480
+        width, height = 352, 280
 
         self.camera1.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.camera1.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -134,14 +148,25 @@ class DualCamera:
 
 
 if __name__ == "__main__":
+    # def count_cameras():
+    #     camera_count = 0
+    #     for i in range(10):  # 尝试0到9的摄像头索引，可根据实际情况调整范围
+    #         cap = cv2.VideoCapture(i)
+    #         if cap.isOpened():
+    #             print(i)
+    #             camera_count += 1
+    #             cap.release()
+    #     return camera_count
+    # count_cameras()
     # 创建 DualCamera 实例，可通过 show_fps 参数选择是否显示帧率
     dual_camera = DualCamera(show_fps=True)
     # 启动线程
     dual_camera.cam_thread1.start()
     dual_camera.cam_thread2.start()
-    time.sleep(4)
+
+    time.sleep(2)
     while True:
-        time.sleep(0.2)
+        time.sleep(0.03)
         im1, im2 = dual_camera.get_images()
         cv2.imshow('im1', im1)
         cv2.imshow('im2', im2)
