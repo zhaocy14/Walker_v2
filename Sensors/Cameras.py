@@ -76,8 +76,8 @@ class DualCamera:
                     print(f'Failed to read data from camera {cam_id} after 10 attempts')
                     break
 
-            # 旋转图像180°
-            frame = cv2.rotate(frame, cv2.ROTATE_180)
+            # # 旋转图像180°
+            # frame = cv2.rotate(frame, cv2.ROTATE_180)
 
             if cam_id == 0:
                 self.image1 = frame
