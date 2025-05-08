@@ -169,7 +169,7 @@ if __name__ == "__main__":
         time.sleep(0.3)
         im1, im2 = dual_camera.get_images()
         cv2.imshow('im1', im1)
-        cv2.imshow('im2', im2)
+        # cv2.imshow('im2', im2)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
