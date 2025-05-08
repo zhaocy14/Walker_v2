@@ -77,7 +77,7 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            cond = 1 if speed > 0 else 257
+            cond = 1 if speed >= 0 else 257
             speed = abs(speed)
             self.set_motor_cond(cond)
             self.client.write_register(
@@ -96,7 +96,6 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            self.client.connect()
             self.client.write_register(
                 address=0x0008,
                 value=1 if enable else 0,
@@ -115,7 +114,6 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            self.client.connect()
             self.client.write_register(
                 address=0x000A,
                 value=0x0000,
@@ -132,7 +130,6 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            self.client.connect()
             self.client.write_register(
                 address=0x00c8,
                 value=cond,
@@ -146,7 +143,7 @@ class SingleDriverSerial(object):
 if __name__ == "__main__":
     import time
     time.sleep(3)
-    driver = SingleDriverSerial(port_key=DRIVER_LEFT_LOCATION)
+    driver = SingleDriverSerial(port_key=DRIVER_RIGHT_LOCATION)
     # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
     # while True:
@@ -159,8 +156,8 @@ if __name__ == "__main__":
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
-    driver.set_driver_speed(1)
-    time.sleep(2)
+    driver.set_driver_speed(-2)
+    time.sleep(5)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
