@@ -7,8 +7,8 @@ sys.path.append(FATHER_PATH)
 DATA_PATH = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + ".." + os.path.sep + "Data")
 
 #   Serial Port Configuration
-LIDAR_LOCATION_HIGH = "3-2.4"
-LIDAR_LOCATION_LOW = "3-2"
+LIDAR_LOCATION_HIGH = "1-3"
+LIDAR_LOCATION_LOW = "1-3"
 
 SOFTSKIN_LOCATION = "1-4.4:1.1"
 SOFTSKIN_BAUDRATE = 115200
@@ -22,8 +22,8 @@ POWER_BAUDRATE = 9600
 ARDUINO_LOCATION = "1-4.3"
 ARDUINO_BAUDRATE = 9600
 
-DRIVER_LEFT_LOCATION = "3-1.2.2"
-DRIVER_RIGHT_LOCATION = "3-1.2.2"
+DRIVER_LEFT_LOCATION = "1-4.2.1"
+DRIVER_RIGHT_LOCATION = "1-4.2.2"
 DRIVER_BAUDRATE = 115200
 # =======================================================================
 

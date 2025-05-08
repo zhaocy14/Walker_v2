@@ -131,7 +131,7 @@ if __name__ == "__main__":
     import time
     driver = SingleDriverSerial(port_key=DRIVER_LEFT_LOCATION)
     # a loop for reading and logging driver's position, speed
-    driver.set_motor_enable(False, True)
+    # driver.set_motor_enable(False, True)
     while True:
         position = driver.get_driver_position()
         speed = driver.get_motor_speed()

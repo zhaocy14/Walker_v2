@@ -164,9 +164,9 @@ if __name__ == "__main__":
     dual_camera.cam_thread1.start()
     dual_camera.cam_thread2.start()
 
-    time.sleep(2)
+    time.sleep(1)
     while True:
-        time.sleep(0.03)
+        time.sleep(0.3)
         im1, im2 = dual_camera.get_images()
         cv2.imshow('im1', im1)
         cv2.imshow('im2', im2)
