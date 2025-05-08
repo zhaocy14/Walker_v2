@@ -1,5 +1,7 @@
 import pymodbus
 from pymodbus.client import ModbusSerialClient
+from sympy.strategies.branch import condition
+
 from Sensors.SensorConfig import *
 from Sensors.SensorFunctions import *
 
@@ -75,7 +77,9 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            self.client.connect()
+            cond = 1 if speed > 0 else 257
+            speed = abs(speed)
+            self.set_motor_cond(cond)
             self.client.write_register(
                 address=0x009a,
                 value=speed,
@@ -120,6 +124,22 @@ class SingleDriverSerial(object):
         except Exception as e:
             print(f"设置电机低电流时发生异常: {e}")
 
+
+    def set_motor_cond(self, cond:int = 0):
+        """
+        Set the condition of the motor.
+        :param cond: 0 for slow down; 1 for turn forward; 257 for turn backward; 256 for shart stop
+        :return: None
+        """
+        try:
+            self.client.connect()
+            self.client.write_register(
+                address=0x00c8,
+                value=cond,
+                slave=self.slave_id
+            )
+        except Exception as e:
+            print(f"设置电机状态时发生异常: {e}")
 
 
 
