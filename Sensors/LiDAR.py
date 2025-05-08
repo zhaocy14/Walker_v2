@@ -10,18 +10,13 @@ from PIL import Image
 import math
 
 class LiDAR(object):
-    def __init__(self, is_zmq: bool = True):
+    def __init__(self, ):
         """
-        Search the LiDAR for scanning. It includes two version: python and C.
-        Usually use the python version. While the C version is to use the ZMQ to communicate between C and python code.
-        :param is_zmq: a bool value to decide whether you use python version(False) or C version(True)
+        Search the LiDAR for scanning.
         """
         super().__init__()
-        if not is_zmq:
-            self.port_name, _ = detect_serials(port_key=LIDAR_LOCATION_LOW, sensor_name="LiDAR Python")
-            self.python_lidar = rplidar.RPLidar(self.port_name)
-        else:
-            self.port_name, _ = detect_serials(port_key=LIDAR_LOCATION_HIGH, sensor_name="LiDAR")
+        self.port_name, _ = detect_serials(port_key=LIDAR_LOCATION_LOW, sensor_name="LiDAR Python")
+        self.python_lidar = rplidar.RPLidar(self.port_name)
         # store the data
         self.scan_data_list = []
 
@@ -36,6 +31,7 @@ class LiDAR(object):
                 self.scan_data_list = scan
                 if is_show:
                     print(self.scan_data_list)
+            return None
         except BaseException as be:
             if retry > 0:
                 print(f"{be}, retrying")
@@ -62,7 +58,7 @@ class LiDARProcessor(object):
         """
 
         # LiDAR object
-        self.rplidar = LiDAR.LiDAR(is_zmq=False).python_lidar
+        self.rplidar = LiDAR().python_lidar
 
         # for leg position storage
         self.scan_raw_data = np.zeros((1, 1))
@@ -268,7 +264,8 @@ class LiDARProcessor(object):
         return self.leg_img
 
 if __name__ == "__main__":
+    lidar = LiDARProcessor(is_show=True)
     # just for checking the LiDAR
-    lidar_instance = LiDAR(is_zmq=False)
-    lidar_instance.python_scan(is_show=True)
+    # lidar_instance = LiDAR(is_zmq=False)
+    # lidar_instance.python_scan(is_show=True)
     # print(lidar_instance.port_name)
