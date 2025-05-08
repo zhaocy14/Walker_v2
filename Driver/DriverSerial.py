@@ -76,7 +76,14 @@ class SingleDriverSerial(object):
         :return: None
         """
         try:
-            cond = 1 if speed > 0 else 257
+            if speed > 0:
+                cond = 1
+            elif speed == 0:
+                cond = 0
+            elif speed < 0:
+                cond = 257
+            else:
+                cond = 256
             speed = abs(speed)
             self.set_motor_cond(cond)
             self.client.write_register(
@@ -168,6 +175,12 @@ if __name__ == "__main__":
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
     driver.set_driver_speed(-10)
+    time.sleep(2)
+    position = driver.get_driver_position()
+    speed = driver.get_motor_speed()
+    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+
+    driver.set_driver_speed(0)
     time.sleep(2)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
