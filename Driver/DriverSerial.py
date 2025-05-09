@@ -215,22 +215,22 @@ if __name__ == "__main__":
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
     driver.set_driver_speed(10)
-    time.sleep(2)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    time.sleep(0.1)
 
-    driver.set_driver_speed(0)
-    time.sleep(2)
+    driver.set_driver_speed(15)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    time.sleep(0.2)
 
     driver.set_driver_speed(-10)
-    time.sleep(2)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    time.sleep(1)
 
     driver.set_driver_speed(0)
     time.sleep(2)
