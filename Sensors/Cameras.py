@@ -159,14 +159,14 @@ if __name__ == "__main__":
     #     return camera_count
     # count_cameras()
     # 创建 DualCamera 实例，可通过 show_fps 参数选择是否显示帧率
-    dual_camera = DualCamera(show_fps=True)
+    dual_camera = DualCamera(show_fps=False)
     # 启动线程
     dual_camera.cam_thread1.start()
     dual_camera.cam_thread2.start()
 
     time.sleep(1)
     while True:
-        time.sleep(0.3)
+        time.sleep(0.2)
         im1, im2 = dual_camera.get_images()
         cv2.imshow('im1', im1)
         # cv2.imshow('im2', im2)

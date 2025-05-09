@@ -65,7 +65,7 @@ class SingleDriverSerial(object):
                 slave=self.slave_id
             )
             if not result.isError():
-                return result.registers
+                return result.registers[0]
             else:
                 print(f"{action}时发生错误: {result}")
         except Exception as e:
@@ -98,6 +98,7 @@ class SingleDriverSerial(object):
             # if the target speed and the current speed have different signs
             # set the condition to stop first
             self.set_motor_cond(0)
+            time.sleep(0.1)
 
         # first set turn forward/slow down/backward/sharp stop
         if rpm > 0:
@@ -109,7 +110,6 @@ class SingleDriverSerial(object):
         else:
             cond = 256 # sharp stop
         self.set_motor_cond(cond)
-
         # speed must be positive value
         rpm = abs(rpm)
         self._write_register(address=0x009a, value=rpm, action="设置电机速度")
@@ -136,7 +136,7 @@ class SingleDriverSerial(object):
         :param enable: True or False.
         :return: None
         """
-        self._write_register(address=0x00d4, value=1 if enable else 0, action="设置电机使能状态")
+        self._write_register(address=0x00d4, value=0 if enable else 1, action="设置电机使能状态")
 
 
     def restart_motor(self):
@@ -202,6 +202,7 @@ if __name__ == "__main__":
     import time
     time.sleep(3)
     driver = SingleDriverSerial(port_key=DRIVER_RIGHT_LOCATION)
+    driver.set_motor_enable(False)
     # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
     # while True:
@@ -215,23 +216,24 @@ if __name__ == "__main__":
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
     driver.set_driver_speed(10)
+    time.sleep(5)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    time.sleep(0.1)
-
-    driver.set_driver_speed(15)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    time.sleep(0.2)
-
+    #
+    # driver.set_driver_speed(20)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # time.sleep(3)
+    #
     driver.set_driver_speed(-10)
+    time.sleep(5)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    time.sleep(1)
 
+    #
     driver.set_driver_speed(0)
     time.sleep(2)
     position = driver.get_driver_position()
