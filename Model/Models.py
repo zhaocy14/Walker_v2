@@ -117,7 +117,7 @@ class MultimodalTransformer(nn.Module):
         self.transformer_decoder = TransformerDecoderModel(embed_dim, nhead, num_layers, 12)
         self.output_seq_length = output_seq_length
 
-    def forward(self, image_embedded, motor_embedded, tgt_embed, num_candidates=5, temperature=0.8):
+    def forward(self, image_embedded, motor_embedded, tgt_embed, num_candidates=1, temperature=0.8):
         # 拼接图像和电机信号的嵌入
         combined_embedded = torch.cat([motor_embedded, image_embedded], dim=-1)
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     import time
     embed_dim = 128
     nhead = 4
-    num_layers = 5
+    num_layers = 1
     max_seq_length = 10
     output_seq_length = 5
 
