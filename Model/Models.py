@@ -8,7 +8,7 @@ from torchvision.models import ResNet18_Weights
 
 # 图像嵌入层，使用简单 CNN
 class ImageEmbedding(nn.Module):
-    def __init__(self, embed_dim, num_layers=5, dropout_rate=0.2, is_resnet=False):
+    def __init__(self, embed_dim, num_layers=3, dropout_rate=0.5, is_resnet=False):
         super(ImageEmbedding, self).__init__()
         self.cnn_layers = nn.ModuleList()
         self.resnet = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     motor_data = torch.randn(1, max_seq_length, 12)
 
     start_time = time.time()
-    for i in range(10):
+    for i in range(5):
         image_embedded = image_embedding(images)
         motor_embedded = motor_embedding(motor_data)
 
@@ -213,4 +213,37 @@ if __name__ == "__main__":
     print(f"Transformer Decoder Size: {transformer_decoder_size:.2f} MB")
     print(f"Total Model Size: {total_model_size:.2f} MB")
 
+    # 训练一个 epoch 的代码
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(params=[{'params': multimodal_transformer.parameters()},
+                                         {'params': image_embedding.parameters()},
+                                         {'params': motor_embedding.parameters()}], lr=0.001)
+    # optimizer = torch.optim.Adam(multimodal_transformer.parameters(), lr=0.001)
 
+    num_epochs = 10
+    time_start = time.time()
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+
+        image_embedded = image_embedding(images)
+        motor_embedded = motor_embedding(motor_data)
+        tgt_embed = torch.zeros((1, output_seq_length, embed_dim * 3), requires_grad=True).to(motor_data.device)
+
+        # 设置为训练模式
+        multimodal_transformer.train()
+
+        candidates = multimodal_transformer(image_embedded, motor_embedded, tgt_embed, num_candidates=1,
+                                            temperature=0.8)
+
+        # 创建一个需要梯度的目标张量
+        target = torch.randn_like(candidates[0], requires_grad=False)
+        loss = criterion(candidates[0], target)
+
+        # 检查损失是否可以计算梯度
+        if loss.requires_grad:
+            loss.backward()
+            optimizer.step()
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+        else:
+            print("Error: Loss does not require grad. Check model parameters and inputs.")
+    print(f"Training completed in {time.time() - time_start:.2f} seconds.")
