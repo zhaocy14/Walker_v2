@@ -11,7 +11,7 @@ from rknn.api import RKNN
 WARMUP_ROUNDS = 10  # 预热轮数
 TEST_ROUNDS = 100  # 测试轮数
 IMAGE_SIZE = (224, 224)  # 图像尺寸
-TARGET_PLATFORM = 'rk3566'  # 目标平台
+TARGET_PLATFORM = 'rk3588s'  # 目标平台
 
 
 def generate_random_image():
