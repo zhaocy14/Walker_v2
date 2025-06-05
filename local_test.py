@@ -1,14 +1,17 @@
 import os
 import time
 import numpy as np
+import cv2
 import torch
 import torchvision.models as models
+import onnx
 from rknn.api import RKNN
 
 # 设置测试参数
 WARMUP_ROUNDS = 10  # 预热轮数
 TEST_ROUNDS = 100  # 测试轮数
 IMAGE_SIZE = (224, 224)  # 图像尺寸
+TARGET_PLATFORM = 'rk3566'  # 目标平台
 
 
 def generate_random_image():
@@ -19,25 +22,95 @@ def generate_random_image():
 
 
 def export_pytorch_model():
-    """导出PyTorch模型为TorchScript格式"""
-    if not os.path.exists('./resnet18.pt'):
+    """导出PyTorch模型为ONNX格式"""
+    if not os.path.exists('./resnet18.onnx'):
+        print("导出PyTorch模型为ONNX格式...")
         net = models.resnet18(pretrained=True)
         net.eval()
-        trace_model = torch.jit.trace(net, torch.rand(1, 3, 224, 224))
-        trace_model.save('./resnet18.pt')
-        print("PyTorch模型导出成功")
+        dummy_input = torch.randn(1, 3, 224, 224)
+
+        torch.onnx.export(
+            net,
+            dummy_input,
+            './resnet18.onnx',
+            export_params=True,
+            opset_version=11,
+            input_names=['input'],
+            output_names=['output'],
+            dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+        )
+
+        # 验证ONNX模型
+        onnx_model = onnx.load('./resnet18.onnx')
+        onnx.checker.check_model(onnx_model)
+        print("ONNX模型导出并验证成功")
+    else:
+        print("ONNX模型已存在")
+
+
+def create_dummy_dataset():
+    """创建用于量化的虚拟数据集"""
+    if not os.path.exists('./dataset.txt'):
+        print("创建虚拟数据集文件...")
+        with open('./dataset.txt', 'w') as f:
+            # 生成10个随机图像路径（实际不会读取）
+            for i in range(10):
+                f.write(f'dummy_image_{i}.jpg\n')
+        print("虚拟数据集创建完成")
+
+
+def convert_to_rknn():
+    """将ONNX模型转换为RKNN模型"""
+    if not os.path.exists('./resnet18.rknn'):
+        export_pytorch_model()
+        create_dummy_dataset()
+
+        print("开始转换为RKNN模型...")
+        rknn = RKNN(verbose=False)
+
+        # 配置模型
+        rknn.config(
+            mean_values=[[123.675, 116.28, 103.53]],
+            std_values=[[58.395, 58.395, 58.395]],
+            target_platform=TARGET_PLATFORM,
+            quantized_dtype='asymmetric_quantized-u8',
+            do_quantization=True
+        )
+
+        # 加载ONNX模型
+        ret = rknn.load_onnx(model='./resnet18.onnx')
+        if ret != 0:
+            print("加载ONNX模型失败!")
+            return None
+
+        # 构建模型（量化）
+        ret = rknn.build(do_quantization=True, dataset='./dataset.txt')
+        if ret != 0:
+            print("构建RKNN模型失败!")
+            return None
+
+        # 导出RKNN模型
+        ret = rknn.export_rknn('./resnet18.rknn')
+        if ret != 0:
+            print("导出RKNN模型失败!")
+            return None
+
+        rknn.release()
+        print("RKNN模型转换完成")
+
+    return True
 
 
 def get_rknn_model():
     """获取并初始化RKNN模型"""
-    if not os.path.exists('./resnet_18.rknn'):
-        print("RKNN模型不存在，请先转换模型")
-        return None
+    if not os.path.exists('./resnet18.rknn'):
+        if not convert_to_rknn():
+            return None
 
     rknn = RKNN(verbose=False)
 
     # 加载RKNN模型
-    ret = rknn.load_rknn('./resnet_18.rknn')
+    ret = rknn.load_rknn('./resnet18.rknn')
     if ret != 0:
         print("加载RKNN模型失败")
         return None
@@ -53,11 +126,11 @@ def get_rknn_model():
 
 def get_torch_model():
     """获取并初始化PyTorch模型"""
-    if not os.path.exists('./resnet18.pt'):
+    if not os.path.exists('./resnet18.onnx'):
         export_pytorch_model()
 
-    # 加载TorchScript模型
-    model = torch.jit.load('./resnet18.pt')
+    # 加载预训练模型
+    model = models.resnet18(pretrained=True)
     model.eval()
     return model
 
@@ -115,6 +188,7 @@ def main():
     """主函数：执行两种模型的推理速度测试并比较结果"""
     print(f"测试配置: 预热 {WARMUP_ROUNDS} 轮，测试 {TEST_ROUNDS} 轮")
     print(f"使用随机生成的 {IMAGE_SIZE[0]}x{IMAGE_SIZE[1]} 图像作为输入")
+    print(f"目标平台: {TARGET_PLATFORM}")
 
     # 生成随机图像数据
     image = generate_random_image()
