@@ -1,76 +1,100 @@
-import torch
-from torchvision.models import resnet18
-from torch import nn
+import numpy as np
+import cv2
 from rknn.api import RKNN
+import os
 
 
-# ---------------------- Transformer 模型定义与转换 ---------------------- #
-def convert_transformer_to_rknn():
-    # 定义简单的Transformer模型（Encoder+Decoder）
-    class TransformerModel(nn.Module):
-        def __init__(self, d_model=512, nhead=8, num_layers=2):
-            super().__init__()
-            self.encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead)
-            self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
-            self.decoder_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=nhead)
-            self.transformer_decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
-            self.proj = nn.Linear(d_model, d_model)  # 简单投影层
+def export_pytorch_model():
+    import torch
+    import torchvision.models as models
+    net = models.resnet18(pretrained=True)
+    net.eval()
+    trace_model = torch.jit.trace(net, torch.Tensor(1, 3, 224, 224))
+    trace_model.save('./resnet18.pt')
 
-        def forward(self, src, tgt):
-            memory = self.transformer_encoder(src)
-            output = self.transformer_decoder(tgt, memory)
-            return self.proj(output)
 
-    model = TransformerModel().eval()
-    #
-    # # 生成测试输入
-    # src = torch.randn(10, 1, 512)  # 序列长度=10, batch=1, 特征维度=512
-    # tgt = torch.randn(5, 1, 512)  # 目标序列长度=5
-    #
-    # # 导出ONNX
-    # torch.onnx.export(
-    #     model,
-    #     (src, tgt),
-    #     "transformer.onnx",
-    #     opset_version=14,
-    #     input_names=["src", "tgt"],
-    #     output_names=["output"]
-    # )
+def show_outputs(output):
+    index = sorted(range(len(output)), key=lambda k : output[k], reverse=True)
+    fp = open('./labels.txt', 'r')
+    labels = fp.readlines()
+    top5_str = 'resnet18\n-----TOP 5-----\n'
+    for i in range(5):
+        value = output[index[i]]
+        if value > 0:
+            topi = '[{:>3d}] score:{:.6f} class:"{}"\n'.format(index[i], value, labels[index[i]].strip().split(':')[-1])
+        else:
+            topi = '[ -1]: 0.0\n'
+        top5_str += topi
+    print(top5_str.strip())
 
-    # 转换为RKNN
-    rknn = RKNN()
-    rknn.load_onnx(model='transformer.onnx')
-    rknn.config(mean_values=[[0]], std_values=[[1]], quantized_dtype='asymmetric_quantized-u8')
-    rknn.build(do_quantization=True, dataset="transformer_dataset.txt")
-    rknn.export_rknn("transformer.rknn")
+
+def show_perfs(perfs):
+    perfs = 'perfs: {}\n'.format(perfs)
+    print(perfs)
+
+
+def softmax(x):
+    return np.exp(x)/sum(np.exp(x))
+
+
+if __name__ == '__main__':
+
+    model = './resnet18.pt'
+    if not os.path.exists(model):
+        export_pytorch_model()
+
+    input_size_list = [[1, 3, 224, 224]]
+
+    # Create RKNN object
+    rknn = RKNN(verbose=True)
+
+    # Pre-process config
+    print('--> Config model')
+    rknn.config(mean_values=[123.675, 116.28, 103.53], std_values=[58.395, 58.395, 58.395], target_platform='rk3566')
+    print('done')
+
+    # Load model
+    print('--> Loading model')
+    ret = rknn.load_pytorch(model=model, input_size_list=input_size_list)
+    if ret != 0:
+        print('Load model failed!')
+        exit(ret)
+    print('done')
+
+    # Build model
+    print('--> Building model')
+    ret = rknn.build(do_quantization=True, dataset='./dataset.txt')
+    if ret != 0:
+        print('Build model failed!')
+        exit(ret)
+    print('done')
+
+    # Export rknn model
+    print('--> Export rknn model')
+    ret = rknn.export_rknn('./resnet_18.rknn')
+    if ret != 0:
+        print('Export rknn model failed!')
+        exit(ret)
+    print('done')
+
+    # Set inputs
+    img = cv2.imread('./space_shuttle_224.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = np.expand_dims(img, 0)
+
+    # Init runtime environment
+    print('--> Init runtime environment')
+    ret = rknn.init_runtime()
+    if ret != 0:
+        print('Init runtime environment failed!')
+        exit(ret)
+    print('done')
+
+    # Inference
+    print('--> Running model')
+    outputs = rknn.inference(inputs=[img], data_format=['nhwc'])
+    np.save('./pytorch_resnet18_0.npy', outputs[0])
+    show_outputs(softmax(np.array(outputs[0][0])))
+    print('done')
+
     rknn.release()
-
-
-# ---------------------- ResNet-18 转换 ---------------------- #
-def convert_resnet_to_rknn():
-    # 加载PyTorch模型
-    model = resnet18(pretrained=True).eval()
-    dummy_input = torch.randn(1, 3, 224, 224)
-
-    # # 导出ONNX
-    # torch.onnx.export(
-    #     model,
-    #     dummy_input,
-    #     "resnet18.onnx",
-    #     opset_version=11,
-    #     input_names=["input"],
-    #     output_names=["output"]
-    # )
-
-    # 转换为RKNN
-    rknn = RKNN()
-    rknn.load_onnx(model='resnet18.onnx')
-    rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], quantized_input_type='float32')
-    rknn.build(do_quantization=True, dataset="resnet_dataset.txt")
-    rknn.export_rknn("resnet18.rknn")
-    rknn.release()
-
-
-if __name__ == "__main__":
-    convert_transformer_to_rknn()
-    convert_resnet_to_rknn()
