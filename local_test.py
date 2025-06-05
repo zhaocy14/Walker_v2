@@ -1,100 +1,152 @@
-import numpy as np
-import cv2
-from rknn.api import RKNN
 import os
+import time
+import numpy as np
+import torch
+import torchvision.models as models
+from rknn.api import RKNN
+
+# 设置测试参数
+WARMUP_ROUNDS = 10  # 预热轮数
+TEST_ROUNDS = 100  # 测试轮数
+IMAGE_SIZE = (224, 224)  # 图像尺寸
+
+
+def generate_random_image():
+    """生成随机图像数据作为输入"""
+    # 生成范围在[0, 255]的随机像素值
+    img = np.random.randint(0, 256, size=(1, *IMAGE_SIZE, 3), dtype=np.uint8)
+    return img
 
 
 def export_pytorch_model():
-    import torch
-    import torchvision.models as models
-    net = models.resnet18(pretrained=True)
-    net.eval()
-    trace_model = torch.jit.trace(net, torch.Tensor(1, 3, 224, 224))
-    trace_model.save('./resnet18.pt')
+    """导出PyTorch模型为TorchScript格式"""
+    if not os.path.exists('./resnet18.pt'):
+        net = models.resnet18(pretrained=True)
+        net.eval()
+        trace_model = torch.jit.trace(net, torch.rand(1, 3, 224, 224))
+        trace_model.save('./resnet18.pt')
+        print("PyTorch模型导出成功")
 
 
-def show_outputs(output):
-    index = sorted(range(len(output)), key=lambda k : output[k], reverse=True)
-    fp = open('./labels.txt', 'r')
-    labels = fp.readlines()
-    top5_str = 'resnet18\n-----TOP 5-----\n'
-    for i in range(5):
-        value = output[index[i]]
-        if value > 0:
-            topi = '[{:>3d}] score:{:.6f} class:"{}"\n'.format(index[i], value, labels[index[i]].strip().split(':')[-1])
-        else:
-            topi = '[ -1]: 0.0\n'
-        top5_str += topi
-    print(top5_str.strip())
+def get_rknn_model():
+    """获取并初始化RKNN模型"""
+    if not os.path.exists('./resnet_18.rknn'):
+        print("RKNN模型不存在，请先转换模型")
+        return None
 
+    rknn = RKNN(verbose=False)
 
-def show_perfs(perfs):
-    perfs = 'perfs: {}\n'.format(perfs)
-    print(perfs)
-
-
-def softmax(x):
-    return np.exp(x)/sum(np.exp(x))
-
-
-if __name__ == '__main__':
-
-    model = './resnet18.pt'
-    if not os.path.exists(model):
-        export_pytorch_model()
-
-    input_size_list = [[1, 3, 224, 224]]
-
-    # Create RKNN object
-    rknn = RKNN(verbose=True)
-
-    # Pre-process config
-    print('--> Config model')
-    rknn.config(mean_values=[123.675, 116.28, 103.53], std_values=[58.395, 58.395, 58.395], target_platform='rk3566')
-    print('done')
-
-    # Load model
-    print('--> Loading model')
-    ret = rknn.load_pytorch(model=model, input_size_list=input_size_list)
+    # 加载RKNN模型
+    ret = rknn.load_rknn('./resnet_18.rknn')
     if ret != 0:
-        print('Load model failed!')
-        exit(ret)
-    print('done')
+        print("加载RKNN模型失败")
+        return None
 
-    # Build model
-    print('--> Building model')
-    ret = rknn.build(do_quantization=True, dataset='./dataset.txt')
-    if ret != 0:
-        print('Build model failed!')
-        exit(ret)
-    print('done')
-
-    # Export rknn model
-    print('--> Export rknn model')
-    ret = rknn.export_rknn('./resnet_18.rknn')
-    if ret != 0:
-        print('Export rknn model failed!')
-        exit(ret)
-    print('done')
-
-    # Set inputs
-    img = cv2.imread('./space_shuttle_224.jpg')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = np.expand_dims(img, 0)
-
-    # Init runtime environment
-    print('--> Init runtime environment')
+    # 初始化运行环境
     ret = rknn.init_runtime()
     if ret != 0:
-        print('Init runtime environment failed!')
-        exit(ret)
-    print('done')
+        print("初始化RKNN运行环境失败")
+        return None
 
-    # Inference
-    print('--> Running model')
-    outputs = rknn.inference(inputs=[img], data_format=['nhwc'])
-    np.save('./pytorch_resnet18_0.npy', outputs[0])
-    show_outputs(softmax(np.array(outputs[0][0])))
-    print('done')
+    return rknn
 
-    rknn.release()
+
+def get_torch_model():
+    """获取并初始化PyTorch模型"""
+    if not os.path.exists('./resnet18.pt'):
+        export_pytorch_model()
+
+    # 加载TorchScript模型
+    model = torch.jit.load('./resnet18.pt')
+    model.eval()
+    return model
+
+
+def test_rknn_inference_speed(rknn_model, image):
+    """测试RKNN模型的推理速度"""
+    print("开始RKNN模型预热...")
+    for _ in range(WARMUP_ROUNDS):
+        rknn_model.inference(inputs=[image], data_format=['nhwc'])
+
+    print("开始RKNN模型性能测试...")
+    start_time = time.time()
+    for _ in range(TEST_ROUNDS):
+        rknn_model.inference(inputs=[image], data_format=['nhwc'])
+    end_time = time.time()
+
+    total_time = end_time - start_time
+    avg_time = total_time / TEST_ROUNDS
+
+    print(f"RKNN模型测试完成:")
+    print(f"- 总耗时: {total_time:.4f}秒")
+    print(f"- 平均单次推理耗时: {avg_time:.4f}秒 ({1 / avg_time:.2f} FPS)")
+
+    return avg_time
+
+
+def test_torch_inference_speed(torch_model, image):
+    """测试PyTorch模型在CPU上的推理速度"""
+    # 转换图像格式以适应PyTorch [N,H,W,C] -> [N,C,H,W]
+    image_tensor = torch.from_numpy(image).permute(0, 3, 1, 2).float()
+
+    print("开始PyTorch模型预热...")
+    with torch.no_grad():
+        for _ in range(WARMUP_ROUNDS):
+            torch_model(image_tensor)
+
+    print("开始PyTorch模型性能测试...")
+    start_time = time.time()
+    with torch.no_grad():
+        for _ in range(TEST_ROUNDS):
+            torch_model(image_tensor)
+    end_time = time.time()
+
+    total_time = end_time - start_time
+    avg_time = total_time / TEST_ROUNDS
+
+    print(f"PyTorch模型测试完成:")
+    print(f"- 总耗时: {total_time:.4f}秒")
+    print(f"- 平均单次推理耗时: {avg_time:.4f}秒 ({1 / avg_time:.2f} FPS)")
+
+    return avg_time
+
+
+def main():
+    """主函数：执行两种模型的推理速度测试并比较结果"""
+    print(f"测试配置: 预热 {WARMUP_ROUNDS} 轮，测试 {TEST_ROUNDS} 轮")
+    print(f"使用随机生成的 {IMAGE_SIZE[0]}x{IMAGE_SIZE[1]} 图像作为输入")
+
+    # 生成随机图像数据
+    image = generate_random_image()
+
+    # 获取并测试RKNN模型
+    rknn_model = get_rknn_model()
+    if rknn_model is None:
+        return
+
+    rknn_time = test_rknn_inference_speed(rknn_model, image)
+
+    # 获取并测试PyTorch模型
+    torch_model = get_torch_model()
+    torch_time = test_torch_inference_speed(torch_model, image)
+
+    # 释放资源
+    rknn_model.release()
+
+    # 比较结果
+    speedup = torch_time / rknn_time
+    print("\n===== 推理速度对比结果 =====")
+    print(f"RKNN模型 vs PyTorch CPU模型")
+    print(f"加速比: {speedup:.2f}x")
+
+    # 生成简单的性能对比图表
+    print("\n===== 性能对比图表 =====")
+    bar_width = 40
+    rknn_bars = int(bar_width * speedup / (speedup + 1))
+    torch_bars = bar_width - rknn_bars
+    print(f"RKNN模型 ({speedup:.2f}x): " + "█" * rknn_bars)
+    print(f"PyTorch模型 (1.00x): " + "█" * torch_bars)
+
+
+if __name__ == "__main__":
+    main()
