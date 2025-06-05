@@ -73,7 +73,7 @@ def convert_to_rknn():
             mean_values=[[123.675, 116.28, 103.53]],
             std_values=[[58.395, 58.395, 58.395]],
             target_platform=TARGET_PLATFORM,
-            quantized_dtype='asymmetric_quantized-u8',
+            quantized_dtype='w16a16i_dfp',
             do_quantization=True
         )
 
