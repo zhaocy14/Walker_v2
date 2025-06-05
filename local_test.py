@@ -22,20 +22,20 @@ def convert_transformer_to_rknn():
             return self.proj(output)
 
     model = TransformerModel().eval()
-
-    # 生成测试输入
-    src = torch.randn(10, 1, 512)  # 序列长度=10, batch=1, 特征维度=512
-    tgt = torch.randn(5, 1, 512)  # 目标序列长度=5
-
-    # 导出ONNX
-    torch.onnx.export(
-        model,
-        (src, tgt),
-        "transformer.onnx",
-        opset_version=13,
-        input_names=["src", "tgt"],
-        output_names=["output"]
-    )
+    #
+    # # 生成测试输入
+    # src = torch.randn(10, 1, 512)  # 序列长度=10, batch=1, 特征维度=512
+    # tgt = torch.randn(5, 1, 512)  # 目标序列长度=5
+    #
+    # # 导出ONNX
+    # torch.onnx.export(
+    #     model,
+    #     (src, tgt),
+    #     "transformer.onnx",
+    #     opset_version=14,
+    #     input_names=["src", "tgt"],
+    #     output_names=["output"]
+    # )
 
     # 转换为RKNN
     rknn = RKNN()
@@ -52,15 +52,15 @@ def convert_resnet_to_rknn():
     model = resnet18(pretrained=True).eval()
     dummy_input = torch.randn(1, 3, 224, 224)
 
-    # 导出ONNX
-    torch.onnx.export(
-        model,
-        dummy_input,
-        "resnet18.onnx",
-        opset_version=11,
-        input_names=["input"],
-        output_names=["output"]
-    )
+    # # 导出ONNX
+    # torch.onnx.export(
+    #     model,
+    #     dummy_input,
+    #     "resnet18.onnx",
+    #     opset_version=11,
+    #     input_names=["input"],
+    #     output_names=["output"]
+    # )
 
     # 转换为RKNN
     rknn = RKNN()
