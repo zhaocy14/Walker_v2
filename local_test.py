@@ -1,7 +1,7 @@
 import torch
 from torchvision.models import resnet18
 from torch import nn
-# from rknn.api import RKNN
+from rknn.api import RKNN
 
 
 # ---------------------- Transformer 模型定义与转换 ---------------------- #
