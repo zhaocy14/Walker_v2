@@ -236,7 +236,7 @@ class LiDARProcessor(object):
 
             except BaseException as be:
                 # pass
-                self.rplidar.clean_input()
+                self.rplidar.clear_input()
                 self.rplidar.stop()
                 # if stop motor, this will
                 self.rplidar.stop_motor()
