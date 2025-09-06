@@ -128,6 +128,11 @@ class LiDAR_YDLIDAR:
             im = np.array(im)
             cv2.imshow("LiDAR", im)
             cv2.waitKey(1)
+        save = True
+        if save:
+            # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
+            save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
+            cv2.imwrite("./img.jpg", save_img)
 
     def detect_leg_version(self, kmeans: KMeans, show: bool = False) -> [np.ndarray, np.ndarray]:
         """
