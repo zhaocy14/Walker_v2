@@ -16,6 +16,7 @@ class SingleDriverSerial(object):
         # motor information
         self.pos = 0 # motor position
         self.rpm = 0 # motor speed(rpm)
+        self.enable = False # motor enable status
 
         # serial part
         port_name, _ = detect_serials(port_key=port_key, sensor_name="Driver")
@@ -136,6 +137,7 @@ class SingleDriverSerial(object):
         :param enable: True or False.
         :return: None
         """
+        self.enable = enable
         self._write_register(address=0x00d4, value=0 if enable else 1, action="设置电机使能状态")
 
 
@@ -202,7 +204,6 @@ if __name__ == "__main__":
     import time
     time.sleep(3)
     driver = SingleDriverSerial(port_key=DRIVER_RIGHT_LOCATION)
-    driver.set_motor_enable(False)
     # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
     # while True:
