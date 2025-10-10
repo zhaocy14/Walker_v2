@@ -1,3 +1,4 @@
+# print(sys.path)
 import serial
 import threading
 import time
@@ -15,8 +16,8 @@ class LiDAR(object):
         Search the LiDAR for scanning.
         """
         super().__init__()
-        self.port_name, _ = detect_serials(port_key=LIDAR_LOCATION_LOW, sensor_name="LiDAR Python")
-        self.python_lidar = rplidar.RPLidar(self.port_name)
+        # self.port_name, _ = detect_serials(port_key=LIDAR_LOCATION_LOW, sensor_name="LiDAR Python")
+        self.python_lidar = rplidar.RPLidar("COM10")
         # store the data
         self.scan_data_list = []
 
@@ -223,6 +224,7 @@ class LiDARProcessor(object):
             try:
                 self.lidar_process_event.wait()
                 for i, scan in enumerate(self.rplidar.iter_scans(max_buf_meas=10000)):
+                    print(i, scan)
                     self.scan_raw_data = np.array(scan)
                     # establish a 2D scan map
                     self.turn_to_img(scan, show=show)

@@ -11,7 +11,7 @@ import serial
 
 
 class ArduinoModule(object):
-    def __init__(self, dis_avg: bool = True, print_out: bool = False):
+    def __init__(self, dis_avg: bool = True, print_out: bool = False, device: str = "OrangePi"):
         """
         This module is for distance detection.
         Arduino board reads the inf data and controls the brake.
@@ -19,9 +19,12 @@ class ArduinoModule(object):
         :arg
         dis_avg: whether to use moving average to mitigate noises
         print_out: to print the infrared data each iteration during reading
+        device: if OrangePi, use /dev/ttyS*, else use detect functions
         """
-
-        port_name, _ = detect_serials(port_key=ARDUINO_LOCATION, sensor_name="Arduino")
+        if device == "OrangePi":
+            port_name = '/dev/ttyS0'
+        else:
+            port_name, _ = detect_serials(port_key=ARDUINO_LOCATION, sensor_name="Arduino")
         self.serial = serial.Serial(port_name, ARDUINO_BAUDRATE, timeout=None)
         # distance data
         self.dis_dim = INFRARED_SENSOR_NUM # number of distance sensors

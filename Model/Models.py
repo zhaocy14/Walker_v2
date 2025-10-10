@@ -163,7 +163,7 @@ if __name__ == "__main__":
     import time
     embed_dim = 32
     nhead = 4
-    num_layers = 1
+    num_layers = 10
     max_seq_length = 10
     output_seq_length = 5
 
@@ -177,13 +177,13 @@ if __name__ == "__main__":
     motor_data = torch.randn(1, max_seq_length, 12)
 
     start_time = time.time()
-    for i in range(5):
+    for i in range(10):
         image_embedded = image_embedding(images)
         motor_embedded = motor_embedding(motor_data)
 
         tgt_embed = torch.zeros((1, output_seq_length, embed_dim * 3)).to(motor_data.device)
         candidates = multimodal_transformer(image_embedded, motor_embedded, tgt_embed, num_candidates=1, temperature=0.8)
-        print(f"Generated {len(candidates)} candidates.")
+        # print(f"Generated {len(candidates)} candidates.")
     print(f"Time taken for 10 iterations: {time.time() - start_time:.2f} seconds")
 
     # 计算模型大小的函数
@@ -241,9 +241,115 @@ if __name__ == "__main__":
 
         # 检查损失是否可以计算梯度
         if loss.requires_grad:
+            time_loss = time.time()
             loss.backward()
             optimizer.step()
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+            print(f'Backward pass took {time.time() - time_loss:.4f} seconds')
         else:
             print("Error: Loss does not require grad. Check model parameters and inputs.")
     print(f"Training completed in {time.time() - time_start:.2f} seconds.")
+
+
+    def train_model(image_embedding, motor_embedding, multimodal_transformer, num_epochs=5):
+        criterion = nn.MSELoss()
+        optimizer = torch.optim.Adam(multimodal_transformer.parameters(), lr=0.001)
+
+        # 设备设置
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        image_embedding.to(device)
+        motor_embedding.to(device)
+        multimodal_transformer.to(device)
+
+        # 生成一批训练数据
+        batch_size = 16
+        train_images = torch.randn(batch_size, max_seq_length, 2, 3, 256, 256).to(device)
+        train_motor = torch.randn(batch_size, max_seq_length, 12).to(device)
+
+        # 生成目标数据 - 调整维度为 [batch_size, output_seq_length, 12]
+        train_targets = torch.randn(batch_size, output_seq_length, 12).to(device)
+
+        # 记录训练前的模型输出作为基准
+        multimodal_transformer.eval()
+        with torch.no_grad():
+            image_embed = image_embedding(train_images[:1])
+            motor_embed = motor_embedding(train_motor[:1])
+            tgt_embed = torch.zeros((1, output_seq_length, embed_dim * 3), requires_grad=False).to(device)
+            before_output = multimodal_transformer(image_embed, motor_embed, tgt_embed)[0]
+
+        # 开始训练
+        print("开始训练...")
+        for epoch in range(num_epochs):
+            multimodal_transformer.train()
+            total_loss = 0
+
+            # 模拟多批次训练
+            for i in range(0, batch_size, 4):  # 批次大小为4
+                batch_images = train_images[i:i + 4]
+                batch_motor = train_motor[i:i + 4]
+                batch_targets = train_targets[i:i + 4]
+
+                optimizer.zero_grad()
+
+                # 前向传播
+                image_embed = image_embedding(batch_images)
+                motor_embed = motor_embedding(batch_motor)
+
+                # 初始化解码器输入
+                tgt_embed = torch.zeros((len(batch_images), output_seq_length, embed_dim * 3),
+                                        requires_grad=True).to(device)
+
+                # 获取模型输出
+                candidates = multimodal_transformer(image_embed, motor_embed, tgt_embed)
+
+                # 确保输出维度匹配 [batch_size, output_seq_length, 12]
+                # 这里假设 candidates[0] 是 [batch_size, output_seq_length, embed_dim*3]
+                # 需要通过一个线性层映射到12维
+                output_projection = nn.Linear(embed_dim * 3, 12).to(device)
+                predicted = output_projection(candidates[0])
+
+                # 计算损失
+                loss = criterion(predicted, batch_targets)
+
+                # 反向传播和优化
+                loss.backward()
+                optimizer.step()
+
+                total_loss += loss.item()
+
+            # 打印每轮的平均损失
+            avg_loss = total_loss / (batch_size // 4)
+            print(f'Epoch {epoch + 1}/{num_epochs}, Loss: {avg_loss:.6f}')
+
+        # 记录训练后的模型输出
+        multimodal_transformer.eval()
+        with torch.no_grad():
+            image_embed = image_embedding(train_images[:1])
+            motor_embed = motor_embedding(train_motor[:1])
+            tgt_embed = torch.zeros((1, output_seq_length, embed_dim * 3), requires_grad=False).to(device)
+            after_output = multimodal_transformer(image_embed, motor_embed, tgt_embed)[0]
+
+        # 计算训练前后输出的差异
+        output_diff = torch.norm(before_output - after_output).item()
+        print(f"训练前后输出差异: {output_diff:.6f}")
+
+        return avg_loss, output_diff
+
+    embed_dim = 32
+    nhead = 4
+    num_layers = 1
+    max_seq_length = 10
+    output_seq_length = 5
+
+    image_embedding = ImageEmbedding(embed_dim, is_resnet=False)
+    motor_embedding = MotorEmbedding(embed_dim=embed_dim)
+    multimodal_transformer = MultimodalTransformer(embed_dim, nhead, num_layers, output_seq_length, max_seq_length)
+
+    # 训练模型
+    final_loss, output_diff = train_model(image_embedding, motor_embedding, multimodal_transformer, num_epochs=5)
+
+    # 判断模型是否有学习
+    if output_diff > 1e-3 and final_loss < 1.0:
+        print("模型似乎在学习！")
+    else:
+        print("模型可能没有有效学习，请检查训练设置。")

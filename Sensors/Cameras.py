@@ -12,27 +12,33 @@ class DualCamera:
         # 初始化两个摄像头
 
         # 先确认相机ID
-        camera_id = [-1, -1]
+        camera_port = [-1, -1]
         for i in range(10):  # 尝试0到9的摄像头索引，可根据实际情况调整范围
             cap = cv2.VideoCapture(i)
             if cap.isOpened():
-                if camera_id[0] == -1:
-                    camera_id[0] = i
+                if camera_port[0] == -1:
+                    camera_port[0] = i
                     cap.release()
-                elif camera_id[1] == -1:
-                    camera_id[1] = i
+                elif camera_port[1] == -1:
+                    camera_port[1] = i
                     cap.release()
                     break
-        print("Camera IDs:", camera_id)
-        self.camera1 = cv2.VideoCapture(camera_id[0])
-        self.camera2 = cv2.VideoCapture(camera_id[1])
+        print("Camera Ports:", camera_port)
+        self.camera1 = cv2.VideoCapture(camera_port[0])
+        self.camera2 = cv2.VideoCapture(camera_port[1])
         self.camera1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.camera2.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.set_frame_rate()
+
+        # 图像数据方便外部调用
         self.image1 = None
         self.image2 = None
+
+        # 数据保存路径
         self.root_path = root_path
         self.set_root_path(root_path)
+
+        # 显示帧率，默认不显示，主要测试实际是否能达到60fps
         self.show_fps = show_fps
 
         # 为每个摄像头创建线程
@@ -82,13 +88,18 @@ class DualCamera:
             if not ret:
                 print(f'Can not read data from camera {cam_id}')
                 # 如果读取失败，重复尝试10次
-                for _ in range(10):
+                for try_i in range(10):
                     ret, frame = camera.read()
                     if ret:
                         break
-                else:
-                    print(f'Failed to read data from camera {cam_id} after 10 attempts')
-                    break
+                    else:
+                        if try_i == 9:
+                            # 如果10次都失败，尝试重新配置摄像头
+                            print(f'Failed to read data from camera {cam_id} after 10 attempts')
+                            self.reconfig_cameras()
+                            # 重新读取数据
+                            ret, frame = camera.read()
+
 
             # # 旋转图像180°
             # frame = cv2.rotate(frame, cv2.ROTATE_180)
@@ -116,7 +127,7 @@ class DualCamera:
 
         # 释放摄像头资源并关闭窗口
         camera.release()
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         print(f"USB camera {cam_id} thread ends")
 
     def get_images(self):
@@ -146,6 +157,34 @@ class DualCamera:
             print(f"Save USB camera 1 frame to {save_path1} successfully.")
             print(f"Save USB camera 2 frame to {save_path2} successfully.")
 
+    def find_camera_port(self, reconfig=False):
+        """
+        When the cameras lost connection, try to release camera and scan the camera port again.
+        :param reconfig: whether to reconfigure the camera
+        :return:
+        """
+        if reconfig:
+            self.camera1.release()
+            self.camera2.release()
+        time.sleep(0.5)
+        # try other ids
+        camera_port = [-1, -1]
+        # 动态搜寻多个id
+        for i in range(100):  # 尝试0到9的摄像头索引，可根据实际情况调整范围
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                if camera_port[0] == -1:
+                    camera_port[0] = i
+                    cap.release()
+                elif camera_port[1] == -1:
+                    camera_port[1] = i
+                    cap.release()
+                    break
+        self.camera1 = cv2.VideoCapture(camera_port[0])
+        self.camera2 = cv2.VideoCapture(camera_port[1])
+        self.set_frame_rate()
+        print("Reconfigured cameras.")
+
 
 if __name__ == "__main__":
     # def count_cameras():
@@ -163,7 +202,7 @@ if __name__ == "__main__":
     # 启动线程
     dual_camera.cam_thread1.start()
     dual_camera.cam_thread2.start()
-
+    dual_camera.save_images('img1.jpg', 'img2.jpg')
     time.sleep(1)
     while True:
         time.sleep(0.2)
