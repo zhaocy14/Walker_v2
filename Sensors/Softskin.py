@@ -88,6 +88,7 @@ class SoftSkin(object):
             while True:
                 # to detect the head data and command data
                 head_data = self.serial.read(1).hex()
+                print("head_data:", head_data)
                 if head_data == "ff":
                     command_data = self.serial.read(2).hex()
                     if command_data == "0000":
