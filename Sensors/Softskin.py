@@ -94,6 +94,7 @@ class SoftSkin(object):
                         break
             self.data_list = []
             data = self.serial.read(17)
+            print(data)
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
