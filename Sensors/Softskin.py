@@ -15,7 +15,7 @@ class SoftSkin(object):
     def __init__(self, device:str = "OrangePi"):
         # serial
         if device == "OrangePi":
-            port_name = '/dev/ttyS1'
+            port_name = '/dev/ttyS3'
         else:
             port_name, _ = detect_serials(port_key=SOFTSKIN_LOCATION, sensor_name="Softskin")  # Arduino Mega 2560 ttyACM0
         self.serial = serial.Serial(port_name, SOFTSKIN_BAUDRATE, timeout=None)
