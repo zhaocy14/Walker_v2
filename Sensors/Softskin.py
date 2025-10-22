@@ -87,14 +87,15 @@ class SoftSkin(object):
             # the data would have 20 bytes starting with ff 00 00
             while True:
                 # to detect the head data and command data
+                # total 3 bytes
                 head_data = self.serial.read(1).hex()
                 if head_data == "ff":
                     command_data = self.serial.read(2).hex()
                     if command_data == "0000":
                         break
             self.data_list = []
-            data = self.serial.read(100)
-            print(data)
+            # read the remaining 17 bytes
+            data = self.serial.read(17)
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
