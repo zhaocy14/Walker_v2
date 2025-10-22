@@ -207,6 +207,8 @@ if __name__ == "__main__":
     while True:
         time.sleep(0.2)
         im1, im2 = dual_camera.get_images()
+        print(im1.shape, im2.shape)
+        print(im1)
         cv2.imshow('im1', im1)
         # cv2.imshow('im2', im2)
         if cv2.waitKey(1) & 0xFF == ord('q'):
