@@ -57,7 +57,7 @@ class ArduinoModule(object):
                 one_line_data = one_line_data.strip('\r\n').split(',')
                 print(one_line_data)
                 # sliding window update
-                self.dis_buffer[0:-1, :] = self.dis_buffer[1:self.dis_dim+1, :]
+                self.dis_buffer[0:-1, :] = self.dis_buffer[1:self.dis_mean_width+1, :]
                 self.dis_buffer[-1, :] = np.array(one_line_data).reshape(self.dis_dim)
                 if self.dis_avg: # if avg across the window
                     self.dis_data = np.mean(self.dis_buffer, axis=0)

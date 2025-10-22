@@ -128,3 +128,10 @@ if __name__ == '__main__':
     #         time.sleep(0.01)
     #         print("yes")
     #         skin.unlock()
+    # test
+    se = serial.Serial('/dev/ttyS3', 115200, timeout=None)
+    time.sleep(2)
+
+    while True:
+        print(se.read(1))
+        time.sleep(0.2)
