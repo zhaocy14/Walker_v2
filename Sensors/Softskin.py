@@ -19,6 +19,7 @@ class SoftSkin(object):
         else:
             port_name, _ = detect_serials(port_key=SOFTSKIN_LOCATION, sensor_name="Softskin")  # Arduino Mega 2560 ttyACM0
         self.serial = serial.Serial(port_name, SOFTSKIN_BAUDRATE, timeout=None)
+        print("Softskin serial port:", port_name)
 
         # sensor number
         self.sensor_num = SKIN_SENSOR_NUM
@@ -96,6 +97,7 @@ class SoftSkin(object):
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
+            print(self.voltage_data)
             self.data_process()
             # print(self.pressure_data, self.pressure_data[0]-self.pressure_data[2])
 
