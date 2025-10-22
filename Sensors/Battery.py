@@ -2,7 +2,7 @@ import serial
 import crcmod.predefined
 import time
 
-def read_battery_voltage(port="/dev/tty", baudrate=115200, slave_addr=0x01):
+def read_battery_voltage(port="/dev/ttyS4", baudrate=115200, slave_addr=0x01):
     """
     读取数控直流降压电源的输入电压（即电池电压）
     :param port: 串口端口（如Windows的COM3、Linux的/dev/ttyUSB0）
@@ -77,7 +77,7 @@ def read_battery_voltage(port="/dev/tty", baudrate=115200, slave_addr=0x01):
 # ------------------- 测试调用 -------------------
 if __name__ == "__main__":
     # 请根据实际串口端口修改（Windows用COMx，Linux/macOS用/dev/ttyUSBx）
-    battery_vol = read_battery_voltage(port="COM3")
+    battery_vol = read_battery_voltage(port="/dev/ttyS4")
     if battery_vol is not None:
         print(f"当前电池电压：{battery_vol} V")
     else:

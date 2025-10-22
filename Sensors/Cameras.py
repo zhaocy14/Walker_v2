@@ -139,6 +139,7 @@ class DualCamera:
         frame2 = self.image2
         save_path1 = os.path.join(self.root_path, file_path1)
         save_path2 = os.path.join(self.root_path, file_path2)
+        print(save_path1, save_path2)
 
         # 确保保存为 JPG 格式
         if not save_path1.endswith('.jpg'):
