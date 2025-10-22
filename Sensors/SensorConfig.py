@@ -36,7 +36,7 @@ SKIN_SAFE_CHANGE_RATE = 10  # Safe pressure change rate for unlocking the walker
 SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking the walker
 
 # Infrared Sensor
-INFRARED_SENSOR_NUM = 9
+INFRARED_SENSOR_NUM = 8
 
 #   LiDAR Configuration
 # scanning configurations
