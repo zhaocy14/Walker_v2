@@ -77,8 +77,15 @@ def read_battery_voltage(port="/dev/ttyS4", baudrate=115200, slave_addr=0x01):
 # ------------------- 测试调用 -------------------
 if __name__ == "__main__":
     # 请根据实际串口端口修改（Windows用COMx，Linux/macOS用/dev/ttyUSBx）
-    battery_vol = read_battery_voltage(port="/dev/ttyS4")
-    if battery_vol is not None:
-        print(f"当前电池电压：{battery_vol} V")
-    else:
-        print("电池电压读取失败")
+    # battery_vol = read_battery_voltage(port="/dev/ttyS4")
+    # if battery_vol is not None:
+    #     print(f"当前电池电压：{battery_vol} V")
+    # else:
+    #     print("电池电压读取失败")
+
+    # test simple serial reading
+    battery_se = serial.Serial('/dev/ttyS4', 115200, timeout=1)
+    time.sleep(2)
+    while True:
+        print(battery_se.read(100))
+        time.sleep(0.1)
