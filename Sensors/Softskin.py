@@ -96,10 +96,12 @@ class SoftSkin(object):
             self.data_list = []
             # read the remaining 17 bytes
             data = self.serial.read(17)
+            # orangepi version only has 3 sensors
+            # Sequence: left, middle, right
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
-            print(self.voltage_data)
+            # print(self.voltage_data)
             self.data_process()
             # print(self.pressure_data, self.pressure_data[0]-self.pressure_data[2])
 
