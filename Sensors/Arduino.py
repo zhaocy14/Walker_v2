@@ -55,6 +55,7 @@ class ArduinoModule(object):
                 self.event.wait()
                 one_line_data = self.serial.readline().decode()
                 one_line_data = one_line_data.strip('\r\n').split(',')
+                print(one_line_data)
                 # sliding window update
                 self.dis_buffer[0:-1, :] = self.dis_buffer[1:self.dis_dim+1, :]
                 self.dis_buffer[-1, :] = np.array(one_line_data).reshape(self.dis_dim)
