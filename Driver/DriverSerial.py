@@ -1,3 +1,7 @@
+import os,sys
+pwd = os.path.abspath(os.path.abspath(__file__))
+father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
+sys.path.append(father_path)
 import pymodbus
 from pymodbus.client import ModbusSerialClient
 from sympy.strategies.branch import condition
