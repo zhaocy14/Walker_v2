@@ -6,7 +6,7 @@ from Sensors.SensorFunctions import *
 
 
 class SingleDriverSerial(object):
-    def __init__(self, port_key:str):
+    def __init__(self, port_key:str, slave_id:int = 0x01):
         """
         A class to handle serial communication with a single motor driver.
         Using Modbus RTU protocol for communication.
@@ -29,7 +29,7 @@ class SingleDriverSerial(object):
             stopbits=1,
             bytesize=8
         )
-        self.slave_id = 0x01  # Modbus slave ID, default is 0x01
+        self.slave_id = slave_id  # Modbus slave ID, default is 0x01; Left:0x01, Right:0x02
         self.client.connect()
 
     def _write_register(self, address:int, value:int, action:str):
@@ -203,7 +203,7 @@ class SingleDriverSerial(object):
 if __name__ == "__main__":
     import time
     time.sleep(3)
-    driver = SingleDriverSerial(port_key=DRIVER_RIGHT_LOCATION)
+    driver = SingleDriverSerial(port_key='\dev\ttyS6', slave_id=0x01)
     # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
     # while True:
@@ -216,27 +216,27 @@ if __name__ == "__main__":
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
-    driver.set_driver_speed(10)
-    time.sleep(5)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    #
-    # driver.set_driver_speed(20)
+    # driver.set_driver_speed(10)
+    # time.sleep(5)
     # position = driver.get_driver_position()
     # speed = driver.get_motor_speed()
     # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    # time.sleep(3)
+    # #
+    # # driver.set_driver_speed(20)
+    # # position = driver.get_driver_position()
+    # # speed = driver.get_motor_speed()
+    # # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # # time.sleep(3)
+    # #
+    # driver.set_driver_speed(-10)
+    # time.sleep(5)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
     #
-    driver.set_driver_speed(-10)
-    time.sleep(5)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-
-    #
-    driver.set_driver_speed(0)
-    time.sleep(2)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # #
+    # driver.set_driver_speed(0)
+    # time.sleep(2)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
