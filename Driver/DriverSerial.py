@@ -1,6 +1,4 @@
 import os,sys
-from pty import slave_open
-
 pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
@@ -26,8 +24,8 @@ class DriversSerial(object):
         self.r_rpm = 0 # right motor speed(rpm)
         self.r_enable = False # right motor enable status
 
-        self.left_slave_id = 0x01
-        self.right_slave_id = 0x02
+        self.left_device_id = 0x01
+        self.right_device_id = 0x02
 
         # serial part
         print("Driver serial port:", '/dev/ttyS6')
@@ -55,16 +53,16 @@ class DriversSerial(object):
         """
         try:
             if motor == 'left':
-                slave_id = self.left_slave_id
+                device_id = self.left_device_id
             elif motor == 'right':
-                slave_id = self.right_slave_id
+                device_id = self.right_device_id
             else:
-                slave_id = 0
+                device_id = 0
                 print("电机选择错误，只能选择'left'或'right'，已设置为0")
             self.client.write_register(
                 address=address,
                 value=value,
-                slave=slave_id
+                device_id=device_id
             )
         except Exception as e:
             print(f"{action}时发生异常: {e}")
@@ -80,16 +78,16 @@ class DriversSerial(object):
         """
         try:
             if motor == 'left':
-                slave_id = self.left_slave_id
+                device_id = self.left_device_id
             elif motor == 'right':
-                slave_id = self.right_slave_id
+                device_id = self.right_device_id
             else:
-                slave_id = 0
+                device_id = 0
                 print("电机选择错误，只能选择'left'或'right'，已设置为0")
             result = self.client.read_holding_registers(
                 address=address,
                 count=count,
-                slave=slave_id
+                device_id=device_id
             )
             if not result.isError():
                 return result.registers[0]
