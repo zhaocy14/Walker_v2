@@ -178,14 +178,19 @@ class DriversSerial(object):
                 self._write_register(address=0x00c8, value=cond, action="设置电机状态", motor=motor)
 
 
-    def set_motor_enable(self, enable:bool):
+    def set_motor_enable(self, enable:bool, motor:str):
         """
         Enable or disable the motor.
         :param enable: True or False.
+        :param motor: str, left or right
         :return: None
         """
-        self.enable = enable
-        self._write_register(address=0x00d4, value=0 if enable else 1, action="设置电机使能状态")
+        if motor == 'left':
+            self.l_enable = enable
+            self._write_register(address=0x00d4, value=0 if enable else 1, action="设置左电机使能状态", motor='left')
+        elif motor == 'right':
+            self.r_enable = enable
+            self._write_register(address=0x00d4, value=0 if enable else 1, action="设置右电机使能状态", motor='right')
 
 
     def restart_motor(self):
@@ -251,42 +256,43 @@ if __name__ == "__main__":
     import time
     driver = DriversSerial(port_key='/dev/ttyS6')
     # a loop for reading and logging driver's position, speed
-    # driver.set_motor_enable(False, True)
+    driver.set_motor_enable(enable=False, motor='left')
+    driver.set_motor_enable(enable=False, motor='right')
     # while True:
     #     position = driver.get_driver_position()
     #     speed = driver.get_motor_speed()
     #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
     #     time.sleep(0.1)
     #
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-
-    driver.set_single_driver_speed(rpm=10, motor='left')
-    driver.set_single_driver_speed(rpm=-10, motor='right')
-    time.sleep(5)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
     #
-    driver.set_single_driver_speed(rpm=20, motor='left')
-    driver.set_single_driver_speed(rpm=-20, motor='right')
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    time.sleep(3)
-    #
-    driver.set_single_driver_speed(rpm=-10, motor='left')
-    driver.set_single_driver_speed(rpm=10, motor='right')
-    time.sleep(5)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    #
+    # driver.set_single_driver_speed(rpm=10, motor='left')
+    # driver.set_single_driver_speed(rpm=-10, motor='right')
+    # time.sleep(5)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
     # #
-    driver.set_single_driver_speed(rpm=0, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(2)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # driver.set_single_driver_speed(rpm=20, motor='left')
+    # driver.set_single_driver_speed(rpm=-20, motor='right')
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # time.sleep(3)
+    # #
+    # driver.set_single_driver_speed(rpm=10, motor='left')
+    # driver.set_single_driver_speed(rpm=-10, motor='right')
+    # time.sleep(5)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # #
+    # # #
+    # driver.set_single_driver_speed(rpm=0, motor='left')
+    # driver.set_single_driver_speed(rpm=0, motor='right')
+    # time.sleep(2)
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
