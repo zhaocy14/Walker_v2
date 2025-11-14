@@ -4,18 +4,16 @@ father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
 import pymodbus
 from pymodbus.client import ModbusSerialClient
-from sympy.strategies.branch import condition
-from Sensors.SensorConfig import *
-from Sensors.SensorFunctions import *
+import serial
 
 
-class SingleDriverSerial(object):
-    def __init__(self, port_key:str, slave_id:int = 0x01):
+class DriversSerial(object):
+    def __init__(self, port_key:str):
         """
         A class to handle serial communication with a single motor driver.
         Using Modbus RTU protocol for communication.
         """
-        super(SingleDriverSerial, self).__init__()
+        super(DriversSerial, self).__init__()
 
         # motor information
         self.pos = 0 # motor position
@@ -23,19 +21,20 @@ class SingleDriverSerial(object):
         self.enable = False # motor enable status
 
         # serial part
-        port_name, _ = detect_serials(port_key=port_key, sensor_name="Driver")
-        print("Driver serial port:", port_name)
+        print("Driver serial port:", '/dev/ttyS6')
         self.client = ModbusSerialClient(
             framer=pymodbus.framer.FramerType.RTU,
-            port=port_name,
-            baudrate=DRIVER_BAUDRATE,
+            port='/dev/ttyS6',
+            baudrate=115200,
             timeout=1,
             parity=serial.PARITY_NONE,
             stopbits=1,
             bytesize=8
         )
-        self.slave_id = slave_id  # Modbus slave ID, default is 0x01; Left:0x01, Right:0x02
+        self.left_slave_id = 0x01
+        self.right_slave_id = 0x02
         self.client.connect()
+        print(self.client.connected)
 
     def _write_register(self, address:int, value:int, action:str):
         """
@@ -206,20 +205,15 @@ class SingleDriverSerial(object):
 
 
 if __name__ == "__main__":
-    port = "/dev/ttyS80"
-    ser = serial.Serial(port=port, baudrate=115200, timeout=1)
-    print(ser.is_open)
-    ser.close()
-    # import time
-    # time.sleep(3)
-    # driver = SingleDriverSerial(port_key='/dev/ttyS6', slave_id=0x01)
+    import time
+    driver = DriversSerial(port_key='/dev/ttyS6')
     # # a loop for reading and logging driver's position, speed
-    # # driver.set_motor_enable(False, True)
-    # # while True:
-    # #     position = driver.get_driver_position()
-    # #     speed = driver.get_motor_speed()
-    # #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    # #     time.sleep(0.1)
+    # driver.set_motor_enable(False, True)
+    # while True:
+    #     position = driver.get_driver_position()
+    #     speed = driver.get_motor_speed()
+    #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    #     time.sleep(0.1)
     #
     # position = driver.get_driver_position()
     # speed = driver.get_motor_speed()
