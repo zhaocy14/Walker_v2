@@ -206,7 +206,7 @@ class SingleDriverSerial(object):
 
 
 if __name__ == "__main__":
-    port = "/dev/ttyS6"
+    port = "/dev/ttyS80"
     ser = serial.Serial(port=port, baudrate=115200, timeout=1)
     print(ser.is_open)
     ser.close()
