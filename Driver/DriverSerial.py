@@ -24,6 +24,7 @@ class SingleDriverSerial(object):
 
         # serial part
         port_name, _ = detect_serials(port_key=port_key, sensor_name="Driver")
+        print("Driver serial port:", port_name)
         self.client = ModbusSerialClient(
             framer=pymodbus.framer.FramerType.RTU,
             port=port_name,
