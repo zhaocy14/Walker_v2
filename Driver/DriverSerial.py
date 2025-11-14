@@ -206,20 +206,24 @@ class SingleDriverSerial(object):
 
 
 if __name__ == "__main__":
-    import time
-    time.sleep(3)
-    driver = SingleDriverSerial(port_key='/dev/ttyS6', slave_id=0x01)
-    # a loop for reading and logging driver's position, speed
-    # driver.set_motor_enable(False, True)
-    # while True:
-    #     position = driver.get_driver_position()
-    #     speed = driver.get_motor_speed()
-    #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    #     time.sleep(0.1)
-
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    port = "/dev/ttyS6"
+    ser = serial.Serial(port=port, baudrate=115200, timeout=1)
+    print(ser.is_open)
+    ser.close()
+    # import time
+    # time.sleep(3)
+    # driver = SingleDriverSerial(port_key='/dev/ttyS6', slave_id=0x01)
+    # # a loop for reading and logging driver's position, speed
+    # # driver.set_motor_enable(False, True)
+    # # while True:
+    # #     position = driver.get_driver_position()
+    # #     speed = driver.get_motor_speed()
+    # #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    # #     time.sleep(0.1)
+    #
+    # position = driver.get_driver_position()
+    # speed = driver.get_motor_speed()
+    # print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
     # driver.set_driver_speed(10)
     # time.sleep(5)
