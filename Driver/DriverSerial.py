@@ -1,4 +1,6 @@
 import os,sys
+from pty import slave_open
+
 pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
@@ -16,9 +18,16 @@ class DriversSerial(object):
         super(DriversSerial, self).__init__()
 
         # motor information
-        self.pos = 0 # motor position
-        self.rpm = 0 # motor speed(rpm)
-        self.enable = False # motor enable status
+        self.l_pos = 0 # left motor position
+        self.l_rpm = 0 # left motor speed(rpm)
+        self.l_enable = False # left motor enable status
+
+        self.r_pos = 0 # right motor position
+        self.r_rpm = 0 # right motor speed(rpm)
+        self.r_enable = False # right motor enable status
+
+        self.left_slave_id = 0x01
+        self.right_slave_id = 0x02
 
         # serial part
         print("Driver serial port:", '/dev/ttyS6')
@@ -31,30 +40,36 @@ class DriversSerial(object):
             stopbits=1,
             bytesize=8
         )
-        self.left_slave_id = 0x01
-        self.right_slave_id = 0x02
         self.client.connect()
         print(self.client.connected)
 
-    def _write_register(self, address:int, value:int, action:str):
+    def _write_register(self, address:int, value:int, action:str, motor:str):
         """
         Write a value to a register. Single register.
         Function code is embedded in the pymodbus library.
         :param address: register address
         :param value: value to write
         :param action: action name for logging
+        :param motor: str, left or right
         :return: None
         """
         try:
+            if motor == 'left':
+                slave_id = self.left_slave_id
+            elif motor == 'right':
+                slave_id = self.right_slave_id
+            else:
+                slave_id = 0
+                print("电机选择错误，只能选择'left'或'right'，已设置为0")
             self.client.write_register(
                 address=address,
                 value=value,
-                slave=self.slave_id
+                slave=slave_id
             )
         except Exception as e:
             print(f"{action}时发生异常: {e}")
 
-    def _read_register(self, address:int, count:int, action:str):
+    def _read_register(self, address:int, count:int, action:str, motor:str):
         """
         Read a value from a register. Single register.
         Function code is embedded in the pymodbus library.
@@ -64,10 +79,17 @@ class DriversSerial(object):
         :return: value read
         """
         try:
+            if motor == 'left':
+                slave_id = self.left_slave_id
+            elif motor == 'right':
+                slave_id = self.right_slave_id
+            else:
+                slave_id = 0
+                print("电机选择错误，只能选择'left'或'right'，已设置为0")
             result = self.client.read_holding_registers(
                 address=address,
                 count=count,
-                slave=self.slave_id
+                slave=slave_id
             )
             if not result.isError():
                 return result.registers[0]
@@ -82,18 +104,20 @@ class DriversSerial(object):
         Get the status of the driver.
         :return: status
         """
-        self.pos = self._read_register(address=0x0004, count=2, action="读取电机位置")
-        return self.pos
+        self.l_pos = self._read_register(address=0x0004, count=2, action="读取电机位置", motor='left')
+        self.r_pos = self._read_register(address=0x0004, count=2, action="读取电机位置", motor='right')
+        return self.l_pos, self.r_pos
 
     def get_motor_speed(self):
         """
         Get the speed of the motor.
         :return: speed
         """
-        self.rpm = self._read_register(address=0x0019, count=1, action="读取电机速度")
-        return self.rpm
+        self.l_rpm = self._read_register(address=0x0019, count=1, action="读取电机速度", motor='left')
+        self.r_rpm = self._read_register(address=0x0019, count=1, action="读取电机速度", motor='right')
+        return self.l_rpm, self.r_rpm
 
-    def set_driver_speed(self, rpm):
+    def set_driver_speed(self, rpm, motor:str):
         """
         Set the speed of the driver.
         :param rpm: speed value
@@ -207,13 +231,13 @@ class DriversSerial(object):
 if __name__ == "__main__":
     import time
     driver = DriversSerial(port_key='/dev/ttyS6')
-    # # a loop for reading and logging driver's position, speed
+    # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
-    # while True:
-    #     position = driver.get_driver_position()
-    #     speed = driver.get_motor_speed()
-    #     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
-    #     time.sleep(0.1)
+    while True:
+        position = driver.get_driver_position()
+        speed = driver.get_motor_speed()
+        print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+        time.sleep(0.1)
     #
     # position = driver.get_driver_position()
     # speed = driver.get_motor_speed()
