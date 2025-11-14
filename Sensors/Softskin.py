@@ -126,11 +126,11 @@ class SoftSkin(object):
 if __name__ == '__main__':
 
     skin = SoftSkin()
-    # while True:
-    #     if skin.is_abnormal:
-    #         time.sleep(0.01)
-    #         print("yes")
-    #         skin.unlock()
+    while True:
+        if skin.is_abnormal:
+            time.sleep(0.01)
+            print("yes")
+            # skin.unlock()
     # test
     # se = serial.Serial('/dev/ttyS3', 115200, timeout=None)
     # time.sleep(2)
