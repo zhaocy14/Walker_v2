@@ -208,7 +208,7 @@ class SingleDriverSerial(object):
 if __name__ == "__main__":
     import time
     time.sleep(3)
-    driver = SingleDriverSerial(port_key='\dev\ttyS6', slave_id=0x01)
+    driver = SingleDriverSerial(port_key='/dev/ttyS6', slave_id=0x01)
     # a loop for reading and logging driver's position, speed
     # driver.set_motor_enable(False, True)
     # while True:
