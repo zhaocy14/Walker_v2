@@ -102,8 +102,8 @@ class DriversSerial(object):
         Get the status of the driver.
         :return: status
         """
-        self.l_pos = self._read_register(address=0x0004, count=2, action="读取电机位置", motor='left')
-        self.r_pos = self._read_register(address=0x0004, count=2, action="读取电机位置", motor='right')
+        self.l_pos = self._read_register(address=0x0004, count=2, action="读取左电机位置", motor='left')
+        self.r_pos = self._read_register(address=0x0004, count=2, action="读取右电机位置", motor='right')
         return self.l_pos, self.r_pos
 
     def get_motor_speed(self):
@@ -111,8 +111,8 @@ class DriversSerial(object):
         Get the speed of the motor.
         :return: speed
         """
-        self.l_rpm = self._read_register(address=0x0019, count=1, action="读取电机速度", motor='left')
-        self.r_rpm = self._read_register(address=0x0019, count=1, action="读取电机速度", motor='right')
+        self.l_rpm = self._read_register(address=0x0019, count=1, action="读取左电机速度", motor='left')
+        self.r_rpm = self._read_register(address=0x0019, count=1, action="读取右电机速度", motor='right')
         return self.l_rpm, self.r_rpm
 
     def set_driver_speed(self, rpm, motor:str):
