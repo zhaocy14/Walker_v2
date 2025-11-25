@@ -96,7 +96,7 @@ class LiDAR_YDLIDAR:
         self.lidar.setlidaropt(ydlidar.LidarPropIntenstiy, False)  # 若需强度信息，设为True
         print("YDLIDAR参数配置完成")
 
-    def turn_to_img(self, original_list: list, show: bool = False) -> None:
+    def turn_to_img(self, original_list: list, show: bool = False, save:bool = False) -> None:
         """
         turn the scan list to an image
         :param original_list: a list of the [angle, distance, quality]
@@ -119,22 +119,21 @@ class LiDAR_YDLIDAR:
             #     if index_y >=2 and index_y <= self.size -2:
             #         img[index_x-2:index_x+2,index_y-2:index_y+2] = 1
             self.scan_img[index_x, index_y] = 1
+        im = np.copy(self.scan_img)
+        im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
+        size = int(self.size * self.scope)
+        im = Image.fromarray(im)
+        im = im.resize((size, size), Image.BILINEAR)
+        im = np.array(im)
         if show:
-            im = np.copy(self.scan_img)
-            im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
-            size = int(self.size * self.scope)
-            im = Image.fromarray(im)
-            im = im.resize((size, size), Image.BILINEAR)
-            im = np.array(im)
             cv2.imshow("LiDAR", im)
             cv2.waitKey(1)
-        save = True
         if save:
             # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
             save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
             cv2.imwrite("./img.jpg", save_img)
 
-    def detect_leg(self, kmeans: KMeans, show: bool = False) -> [np.ndarray, np.ndarray]:
+    def detect_leg(self, kmeans: KMeans, show: bool = False) -> (np.ndarray, np.ndarray):
         """
         Analyze the top-view map. Using Kmeans to
         :param kmeans: A Kmeans module
