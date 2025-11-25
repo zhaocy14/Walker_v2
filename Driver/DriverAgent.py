@@ -35,12 +35,12 @@ class DriverAgent(object):
         # initialize the odometry
         self.odo = Odometry()
 
+        # record mode
+        self.disable_mode = disable_mode
+
         # main thread for control
         self.thread_control = threading.Thread(target=self.main_control, args=())
         self.thread_control.start()
-
-        # record mode
-        self.disable_mode = disable_mode
 
     def __version__(self):
         print("Driver version:", self.version)
