@@ -51,6 +51,9 @@ class FFL(object):
         self.FFLevent = threading.Event()
         self.FFLevent.clear()
 
+        self.FFLthread = threading.Thread(target=self.main, args=())
+        self.FFLthread.start()
+
     def update_driver(self, speed: float = 0, omega: float = 0, radius: int = 0):
 
         current_speed, current_radius, current_omega = self.driver.speed, self.driver.radius, self.driver.omega
@@ -66,11 +69,44 @@ class FFL(object):
 
     def main(self):
         while True:
-            self.FFLevent.wait()
+            leg_data = self.LiDAR.get_leg_data()
+            if leg_data is not None:
+                self.left_leg = leg_data[0]
+                self.right_leg = leg_data[1]
+                self.human_center = (self.left_leg + self.right_leg)/2
+
+                # conditioning
+                if self.human_center[1] > self.forward_boundary:
+                    if self.human_center[0] > self.center_left_boundary:
+                        # turn left
+                        print("go left")
+                        # self.update_driver(speed=self.f_spd, omega=self.omega_l, radius=0)
+                    elif self.human_center[0] < self.center_right_boundary:
+                        # turn right
+                        print("go right")
+                        # self.update_driver(speed=self.f_spd, omega=self.omega_r, radius=0)
+                    else:
+                        # go straight
+                        print("go forward")
+                        # self.update_driver(speed=self.f_spd, omega=0, radius=0)
+                elif self.human_center[1] < self.backward_boundary:
+                    # go backward
+                    print("go backward")
+                    # self.update_driver(speed=self.b_spd, omega=0, radius=0)
+                else:
+                    # stop
+                    print("stop")
+                    # self.update_driver(speed=0, omega=0, radius=0)
+            else:
+                # no leg detected, stop
+                print("no leg detected, stop")
+                # self.update_driver(speed=0, omega=0, radius=0)
+
             time.sleep(0.1)
+
 
 
 if __name__ == "__main__":
     ffl = FFL()
-    ffl.main()
-
+    time.sleep(1)
+    ffl.FFLevent.set()
