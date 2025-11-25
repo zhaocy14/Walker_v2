@@ -69,6 +69,11 @@ class FFL(object):
 
     def main(self):
         while True:
+            if self.softskin.is_abnormal:
+                print("emergency stop due to abnormal softskin force")
+                self.FFLevent.clear()
+                # self.update_driver(speed=0, omega=0, radius=0)
+            self.FFLevent.wait()
             leg_data = self.LiDAR.get_leg_data()
             if leg_data is not None:
                 self.left_leg = leg_data[0]
