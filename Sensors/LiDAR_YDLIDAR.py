@@ -220,14 +220,14 @@ class LiDAR_YDLIDAR:
                         temp_list = []
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
-                        print(temp_list[-3:])
                         self.scan_raw_data = np.array(temp_list)
-                        self.turn_to_img(temp_list, show=self.is_show)
+                        self.turn_to_img(temp_list)
                         # detect obstacle, but not appropriate for the low lidar
                         # self.detect_obstacle(True)
                         # detect leg
-                        self.detect_leg(self.kmeans, show=self.is_show)
-                        print(self.left_leg,self.right_leg)
+                        self.detect_leg(self.kmeans)
+                        if self.is_show:
+                            print(self.left_leg,self.right_leg)
 
                     else:
                         print("获取数据失败")
@@ -238,8 +238,8 @@ class LiDAR_YDLIDAR:
                 try_times += 1
                 if try_times > 100:
                     break
-                    self.lidar.turnOff()
-                    self.lidar.disconnecting()
+                self.lidar.turnOff()
+                self.lidar.disconnecting()
 
     def get_lidar_data(self) -> np.ndarray:
         """
