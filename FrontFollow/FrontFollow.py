@@ -8,7 +8,7 @@ pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
 
-from Driver.Driver_v2 import Driver
+from Driver.DriverAgent import DriverAgent
 from Sensors import Cameras, Arduino, Softskin, LiDAR_YDLIDAR
 
 class FFL(object):
@@ -17,7 +17,7 @@ class FFL(object):
         Front Following
         """
         super(FFL, self).__init__()
-        self.driver = Driver()
+        self.driver = DriverAgent()
         # self.camera = Cameras.DualCamera()
         self.LiDAR = LiDAR_YDLIDAR.LiDAR_YDLIDAR()
         self.softskin = Softskin.SoftSkin()

@@ -39,8 +39,8 @@ class DriverAgent(object):
         self.disable_mode = disable_mode
 
         # main thread for control
-        self.thread_control = threading.Thread(target=self.main_control, args=())
-        self.thread_control.start()
+        # self.thread_control = threading.Thread(target=self.main_control, args=())
+        # self.thread_control.start()
 
     def __version__(self):
         print("Driver version:", self.version)
