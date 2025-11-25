@@ -213,9 +213,9 @@ class LiDAR_YDLIDAR:
                     scan = ydlidar.LaserScan()
                     r = self.lidar.doProcessSimple(scan)
                     if r:
-                        print(f"\n===== 新帧数据（时间戳: {scan.stamp}） =====")
-                        print(f"扫描频率: {1.0 / scan.config.scan_time:.2f} Hz")
-                        print(f"点数: {scan.points.size()}")
+                        # print(f"\n===== 新帧数据（时间戳: {scan.stamp}） =====")
+                        # print(f"扫描频率: {1.0 / scan.config.scan_time:.2f} Hz")
+                        # print(f"点数: {scan.points.size()}")
                         temp_list = []
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
