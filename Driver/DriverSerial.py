@@ -38,7 +38,6 @@ class DriversSerial(object):
             bytesize=8
         )
         self.client.connect()
-        print(self.client.connected)
 
     def _write_register(self, address:int, value:int, action:str, motor:str):
         """
