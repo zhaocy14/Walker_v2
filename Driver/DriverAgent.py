@@ -40,7 +40,7 @@ class DriverAgent(object):
         self.thread_control.start()
 
         # record mode
-        self.dis_mode = disable_mode
+        self.disable_mode = disable_mode
 
     def __version__(self):
         print("Driver version:", self.version)
@@ -102,7 +102,7 @@ class DriverAgent(object):
         :return:
         """
         while True:
-            if self.dis_mode:
+            if self.disable_mode:
                 # in record mode, deactivate the driver
                 self.disable_driver()
             else:
@@ -118,7 +118,7 @@ class DriverAgent(object):
 
 
 if __name__ == "__main__":
-    driver_ins = DriverAgent()
+    driver_ins = DriverAgent(disable_mode=False)
     driver_ins.__version__()
     driver_ins.update_control_params(speed=0.5, omega=0,radius=0)
     time.sleep(1)
