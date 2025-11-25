@@ -134,7 +134,7 @@ class LiDAR_YDLIDAR:
             save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
             cv2.imwrite("./img.jpg", save_img)
 
-    def detect_leg_version(self, kmeans: KMeans, show: bool = False) -> [np.ndarray, np.ndarray]:
+    def detect_leg(self, kmeans: KMeans, show: bool = False) -> [np.ndarray, np.ndarray]:
         """
         Analyze the top-view map. Using Kmeans to
         :param kmeans: A Kmeans module
@@ -226,7 +226,7 @@ class LiDAR_YDLIDAR:
                         # detect obstacle, but not appropriate for the low lidar
                         # self.detect_obstacle(True)
                         # detect leg
-                        self.detect_leg_version(self.kmeans, show=self.is_show)
+                        self.detect_leg(self.kmeans, show=self.is_show)
                         print(self.left_leg,self.right_leg)
 
                     else:

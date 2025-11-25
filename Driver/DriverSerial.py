@@ -8,7 +8,7 @@ import serial
 
 
 class DriversSerial(object):
-    def __init__(self, port_key:str):
+    def __init__(self, port_key:str = '/dev/ttyS6'):
         """
         A class to handle serial communication with a single motor driver.
         Using Modbus RTU protocol for communication.
@@ -28,10 +28,9 @@ class DriversSerial(object):
         self.right_device_id = 0x02
 
         # serial part
-        print("Driver serial port:", '/dev/ttyS6')
         self.client = ModbusSerialClient(
             framer=pymodbus.framer.FramerType.RTU,
-            port='/dev/ttyS6',
+            port=port_key,
             baudrate=115200,
             timeout=1,
             parity=serial.PARITY_NONE,
@@ -198,15 +197,19 @@ class DriversSerial(object):
         Restart the motor.
         :return: None
         """
-        self._write_register(address=0x00d4, value=0x0100, action="重启电机驱动")
+        self._write_register(address=0x00d4, value=0x0100, action="重启左电机驱动", motor='left')
+        self._write_register(address=0x00d4, value=0x0100, action="重启右电机驱动", motor='right')
 
 
-    def set_motor_low_current(self):
+    def set_torque_limit(self, torque:int, motor:str):
         """
-        Set the low current of the motor.
+        Set the torque limit of the motor.
+        :param torque: torque limit value
+        :param motor: str, left or right
         :return: None
         """
-        self._write_register(address=0x000A, value=1, action="设置电机低电流")
+        self._write_register(address=0x009E, value=torque, action="设置左电机力矩限制", motor='left')
+        self._write_register(address=0x009E, value=torque, action="设置右电机力矩限制", motor='right')
 
     def get_motor_alarm(self):
         """
