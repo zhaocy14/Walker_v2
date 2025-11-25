@@ -44,7 +44,7 @@ class SoftSkin(object):
         # self.build_base_line_data()
 
         # threading
-        self.reading_thread = threading.Thread(target=self.Softskin_main_thread, args=())
+        self.reading_thread = threading.Thread(target=self.softskin_main_thread, args=())
         self.reading_thread.start()
 
     def initialize_table(self):
@@ -80,7 +80,7 @@ class SoftSkin(object):
         # else:
         #     self.is_abnormal = False
 
-    def Softskin_main_thread(self):
+    def softskin_main_thread(self):
         # try:
         self.serial.flush()
         while True:
@@ -101,7 +101,7 @@ class SoftSkin(object):
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
-            # print(self.voltage_data)
+            print(self.voltage_data)
             self.data_process()
             # print(self.pressure_data, self.pressure_data[0]-self.pressure_data[2])
 
