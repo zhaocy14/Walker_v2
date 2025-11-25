@@ -237,9 +237,10 @@ class LiDAR_YDLIDAR:
                 time.sleep(0.5)
                 try_times += 1
                 if try_times > 100:
+
+                    self.lidar.turnOff()
+                    self.lidar.disconnecting()
                     break
-                self.lidar.turnOff()
-                self.lidar.disconnecting()
 
     def get_lidar_data(self) -> np.ndarray:
         """
