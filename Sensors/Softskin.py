@@ -12,7 +12,7 @@ import serial
 
 class SoftSkin(object):
 
-    def __init__(self, device:str = "OrangePi"):
+    def __init__(self, device:str = "OrangePi", is_show: bool = False):
         # serial
         if device == "OrangePi":
             port_name = '/dev/ttyS3'
@@ -42,6 +42,8 @@ class SoftSkin(object):
 
         self.is_pressed = False
         # self.build_base_line_data()
+
+        self.is_show = is_show
 
         # threading
         self.reading_thread = threading.Thread(target=self.softskin_main_thread, args=())
@@ -101,7 +103,8 @@ class SoftSkin(object):
             for i in range(0, self.sensor_num * 2, 2):
                 self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
             self.voltage_data = np.array(self.data_list)
-            print(self.voltage_data)
+            if self.is_show:
+                print(self.voltage_data)
             self.data_process()
             # print(self.pressure_data, self.pressure_data[0]-self.pressure_data[2])
 
@@ -126,11 +129,11 @@ class SoftSkin(object):
 if __name__ == '__main__':
 
     skin = SoftSkin()
-    while True:
-        time.sleep(0.1)
-        print(skin.voltage_data)
-        if skin.is_abnormal:
-            print("yes")
+    # while True:
+    #     # time.sleep(0.1)
+    #     if skin.is_abnormal:
+    #         print("yes")
+    #         time.sleep(0.1)
             # skin.unlock()
     # test
     # se = serial.Serial('/dev/ttyS3', 115200, timeout=None)
