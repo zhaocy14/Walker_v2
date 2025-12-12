@@ -127,8 +127,9 @@ if __name__ == '__main__':
 
     skin = SoftSkin()
     while True:
+        time.sleep(0.1)
+        print(skin.voltage_data)
         if skin.is_abnormal:
-            time.sleep(0.01)
             print("yes")
             # skin.unlock()
     # test
