@@ -128,7 +128,7 @@ class SoftSkin(object):
 
 if __name__ == '__main__':
 
-    skin = SoftSkin()
+    skin = SoftSkin(is_show=True)
     # while True:
     #     # time.sleep(0.1)
     #     if skin.is_abnormal:
