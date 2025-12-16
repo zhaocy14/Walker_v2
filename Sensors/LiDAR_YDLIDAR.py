@@ -91,8 +91,8 @@ class LiDAR_YDLIDAR:
         self.lidar.setlidaropt(ydlidar.LidarPropSingleChannel, True)
         self.lidar.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
         self.lidar.setlidaropt(ydlidar.LidarPropMinAngle, -180.0)
-        self.lidar.setlidaropt(ydlidar.LidarPropMaxRange, 16.0)
-        self.lidar.setlidaropt(ydlidar.LidarPropMinRange, 0.08)
+        self.lidar.setlidaropt(ydlidar.LidarPropMaxRange, 20.0)
+        self.lidar.setlidaropt(ydlidar.LidarPropMinRange, 0.01)
         self.lidar.setlidaropt(ydlidar.LidarPropIntenstiy, False)  # 若需强度信息，设为True
         print("YDLIDAR参数配置完成")
 
@@ -108,7 +108,7 @@ class LiDAR_YDLIDAR:
             theta = original_list[i][1]
             # theta = -theta / 180 * math.pi
             distance = original_list[i][2] * 100 # unit: m->cm, cm is enough, mm will not bring more scan point
-            # print(theta,distance)
+            print(theta,distance)
             # distance = original_list[i][2]  # unit: mm
             # turn distance*theta -> x-y axis in the scan image
             index_x = int(distance * math.cos(theta) + self.half_size)
