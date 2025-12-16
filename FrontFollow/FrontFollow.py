@@ -76,6 +76,7 @@ class FFL(object):
                 # self.update_driver(speed=0, omega=0, radius=0)
             self.FFLevent.wait()
             leg_data = self.LiDAR.get_leg_data()
+            print("leg data:", leg_data)
             if leg_data is not None:
                 self.left_leg = leg_data[0]
                 self.right_leg = leg_data[1]
