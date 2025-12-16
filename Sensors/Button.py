@@ -66,7 +66,7 @@ class Button(object):
         """
         while True:
             state = self._read_gpio()
-            self.pressed = not state  # 按钮按压时为低电平（0），故pressed=True
+            self.pressed = state  # 按钮按压时为低电平（0），故pressed=True
             time.sleep(0.02)  # 20ms检测一次，平衡响应速度和资源占用
 
 if __name__ == "__main__":
