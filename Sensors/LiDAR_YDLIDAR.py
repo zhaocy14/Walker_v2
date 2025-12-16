@@ -119,7 +119,7 @@ class LiDAR_YDLIDAR:
             #     if index_y >=2 and index_y <= self.size -2:
             #         img[index_x-2:index_x+2,index_y-2:index_y+2] = 1
             self.scan_img[index_x, index_y] = 1
-        self.scan_img = np.fliplr(self.scan_img)
+        # self.scan_img = np.fliplr(self.scan_img)
         if save or show:
             im = np.copy(self.scan_img)
             im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
