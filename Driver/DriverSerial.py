@@ -1,4 +1,7 @@
 import os,sys
+
+from PIL.SpiderImagePlugin import iforms
+
 pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
@@ -88,7 +91,7 @@ class DriversSerial(object):
                 device_id=device_id
             )
             if not result.isError():
-                return result.registers[0]
+                return result.registers
             else:
                 print(f"{action}时发生错误: {result}")
         except Exception as e:
@@ -100,8 +103,10 @@ class DriversSerial(object):
         Get the status of the driver.
         :return: status
         """
-        self.l_pos = self._read_register(address=0x0004, count=2, action="读取左电机位置", motor='left')
-        self.r_pos = self._read_register(address=0x0004, count=2, action="读取右电机位置", motor='right')
+        l_regs = self._read_register(address=0x0004, count=2, action="读取左电机位置位置", motor='left')
+        r_regs = self._read_register(address=0x0004, count=2, action="读取右电机位置位置", motor='right')
+        self.l_pos = (l_regs[0] << 16) | l_regs[1] if l_regs is not None else 0
+        self.r_pos = (r_regs[0] << 16) | r_regs[1] if r_regs is not None else 0
         return self.l_pos, self.r_pos
 
     def get_motor_speed(self):
@@ -109,8 +114,10 @@ class DriversSerial(object):
         Get the speed of the motor.
         :return: speed
         """
-        self.l_rpm = self._read_register(address=0x0019, count=1, action="读取左电机速度", motor='left')
-        self.r_rpm = self._read_register(address=0x0019, count=1, action="读取右电机速度", motor='right')
+        l_regs = self._read_register(address=0x0019, count=1, action="读取左电机速度", motor='left')
+        r_regs = self._read_register(address=0x0019, count=1, action="读取右电机速度", motor='right')
+        self.l_rpm = l_regs[0] if l_regs is not None else 0
+        self.r_rpm = r_regs[0] if r_regs is not None else 0
         return self.l_rpm, self.r_rpm
 
     def set_single_driver_speed(self, rpm, motor:str):
@@ -215,34 +222,37 @@ class DriversSerial(object):
         Get the alarm status of the motor.
         :return: alarm status
         """
-        alarm = self._read_register(address=0x00a3, count=1, action="读取电机报警状态")
-        # alarm is a hexadecimal value
-        # 15~13 is the third alarm
-        # 11~8 is the second alarm
-        # 7~4 is the first alarm
-        # 3~0 is the current alarm
-        third_alarm = int((alarm[0] >> 13) & 0x07)
-        second_alarm = int((alarm[0] >> 8) & 0x0F)
-        first_alarm = int((alarm[0] >> 4) & 0x0F)
-        current_alarm = int(alarm[0] & 0x0F)
-        alarm_dict = {
-            0: "正常",
-            1: "电机相位过流",
-            2: "供电电压过高",
-            3: "供电电压过低",
-            4: "电机A相开路",
-            5: "电机B相开路",
-            6: "其他报警或位置超差",
-            7: "内部 24V 电压偏移",
-            8: "AI电压错误",
-            9: "BI电压错误",
-            10: "编码器错误",
-        }
-        print(f"电机报警状态: {alarm[0]:#04x}, 第三报警: {alarm_dict[third_alarm]}, "
-              f"第二报警: {alarm_dict[second_alarm]}, "
-              f"第一报警: {alarm_dict[first_alarm]}, "
-              f"当前报警: {alarm_dict[current_alarm]}")
-        return alarm_dict[current_alarm]
+        all_alarm = {}
+        for motor_id in ['left', 'right']:
+            alarm = self._read_register(address=0x00a3, count=1, action="读取电机报警状态", motor=motor_id)
+            # alarm is a hexadecimal value
+            # 15~13 is the third alarm
+            # 11~8 is the second alarm
+            # 7~4 is the first alarm
+            # 3~0 is the current alarm
+            third_alarm = int((alarm[0] >> 13) & 0x07)
+            second_alarm = int((alarm[0] >> 8) & 0x0F)
+            first_alarm = int((alarm[0] >> 4) & 0x0F)
+            current_alarm = int(alarm[0] & 0x0F)
+            alarm_dict = {
+                0: "正常",
+                1: "电机相位过流",
+                2: "供电电压过高",
+                3: "供电电压过低",
+                4: "电机A相开路",
+                5: "电机B相开路",
+                6: "其他报警或位置超差",
+                7: "内部 24V 电压偏移",
+                8: "AI电压错误",
+                9: "BI电压错误",
+                10: "编码器错误",
+            }
+            print(f"电机报警状态: {alarm[0]:#04x}, 第三报警: {alarm_dict[third_alarm]}, "
+                  f"第二报警: {alarm_dict[second_alarm]}, "
+                  f"第一报警: {alarm_dict[first_alarm]}, "
+                  f"当前报警: {alarm_dict[current_alarm]}")
+            all_alarm[motor_id] = alarm_dict[current_alarm]
+        return all_alarm
 
     def clear_alarm(self):
         """

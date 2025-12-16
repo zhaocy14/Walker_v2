@@ -17,16 +17,17 @@ class FFL(object):
         Front Following
         """
         super(FFL, self).__init__()
+
+        # modules(sensors, drivers)
         self.driver = DriverAgent()
         # self.camera = Cameras.DualCamera()
         self.LiDAR = LiDAR_YDLIDAR.LiDAR_YDLIDAR()
         self.softskin = Softskin.SoftSkin()
 
-        # control parameters
+        # speed parameters
         self.f_spd = 0.1  # forward speed(m/s)
         self.b_spd = -0.1  # backward speed(m/s)
         self.t_spd = 0.2  # turning speed(m/s)
-
         self.omega_l = -0.4  # left omega (rad/s) turning on the spot
         self.omega_r = 0.4  # right omega (rad/s) turning on the spot
 
@@ -59,9 +60,9 @@ class FFL(object):
         current_speed, current_radius, current_omega = self.driver.speed, self.driver.radius, self.driver.omega
         target_speed, target_radius, target_omega = speed, radius, omega
 
-        actual_speed = target_speed + self.spd_change_ratio * (current_speed - target_speed)
-        actual_radius = target_radius + self.spd_change_ratio * (current_radius - target_radius)
-        actual_omega = target_omega + self.spd_change_ratio * (current_omega - target_omega)
+        actual_speed = current_speed + self.spd_change_ratio * (target_speed - current_speed)
+        actual_radius = current_radius + self.spd_change_ratio * (target_radius - current_radius)
+        actual_omega = current_omega + self.spd_change_ratio * (target_omega - current_omega)
 
         self.driver.speed = actual_speed
         self.driver.radius = actual_radius

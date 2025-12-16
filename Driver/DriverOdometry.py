@@ -3,7 +3,7 @@ import math
 
 class Odometry:
     def __init__(self, X=0.0, Y=0.0, THETA=0.0, Odo_l=0, Odo_r=0,
-                 imu_yaw=0.0, tick_threshold=0):
+                 tick_threshold=0):
         self.Odo_l, self.Odo_r = Odo_l, Odo_r
         self.d_theta = 0.0
         self.d_l, self.d_r = 0.0, 0.0  # deviation of left and right wheel
@@ -30,8 +30,8 @@ class Odometry:
         :return:
         """
         # first the deviation time
-        currnt_time = time.time()
-        dt = currnt_time - self._previous_time
+        current_time = time.time()
+        dt = current_time - self._previous_time
         # the wheel position
         self.Odo_l, self.Odo_r = args[0], args[1]
         # Calculate the wheel displacement dl, dr
