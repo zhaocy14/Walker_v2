@@ -62,8 +62,6 @@ class LiDAR_YDLIDAR:
         self.center_point = np.array([WALKER_TOP_BOUNDARY+CENTER_TO_LIDAR,WALKER_LEFT_BOUNDARY])
         self.is_show = is_show
 
-
-        self.theta_flag = 0
         # obstacle part
         # five regions to detect the obstacle
         # 0 means no obstacle, else means yes
@@ -108,13 +106,11 @@ class LiDAR_YDLIDAR:
         for i in range(len(original_list)):
             theta = original_list[i][1]
             distance = original_list[i][2] * SCAN_UNIT # unit: mm
-            # distance = original_list[i][2]  # unit: mm
             # turn distance*theta -> x-y axis in the scan image
             index_x = int(distance * math.cos(theta) + self.half_size)
             index_y = int(distance * math.sin(theta) + self.half_size)
             index_x = min(max(index_x, 0), self.size - 1)
             index_y = min(max(index_y, 0), self.size - 1)
-            print(f"index{i}:",index_x,index_y)
             self.scan_img[index_y, index_x] = 1
         self.scan_img = np.flipud(self.scan_img)
         if save or show:

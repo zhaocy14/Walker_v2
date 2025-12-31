@@ -44,63 +44,17 @@ SCAN_UNIT = 1000   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
 SCAN_SIZE = int(SCAN_UNIT * 3)
 HALF_SIZE = int(SCAN_SIZE / 2)
 # old version of filtering useless data
-COLUMN_BOUNDARY = HALF_SIZE - 20
-BOTTOM_BOUNDARY = HALF_SIZE - 100
+COLUMN_BOUNDARY = HALF_SIZE - 0.2*SCAN_UNIT
+BOTTOM_BOUNDARY = HALF_SIZE - 1*SCAN_UNIT
 FILTER_THETA = 150
 # new version of filtering useless data
-WALKER_TOP_BOUNDARY = 9
-WALKER_BOTTOM_BOUNDARY = 50 + 50
-WALKER_LEFT_BOUNDARY = 19
-WALKER_RIGHT_BOUNDARY = 19
-CENTER_TO_LIDAR = 50
+WALKER_TOP_BOUNDARY = 0.1039 * SCAN_UNIT # 0.10386m
+WALKER_BOTTOM_BOUNDARY = 0.4231 *SCAN_UNIT # 0.42314m
+WALKER_LEFT_BOUNDARY = 0.354 * SCAN_UNIT  # 0.354m
+WALKER_RIGHT_BOUNDARY = 0.354 * SCAN_UNIT  # 0.354m
+
+# LiDAR center point
+CENTER_TO_LIDAR = 0.05 * SCAN_UNIT  # 5cm, just for painting the center
+
 # obstacle part
-OBSTACLE_DISTANCE = 15  # 15 cm detection
-
-
-SPEAKER_BAUDRATE = 9600
-SPEAKER_DICT = {
-    # command
-    "redraw map": 1,
-    "charge": 2,
-    "start": 3,
-    "sleep": 4,
-    "voice menu off": 5,
-    "hand operation": 6,
-    # broadcast
-    "Time_Out": 7,
-    "Menu_Start": 8,
-    "Sure?": 9,
-    "Will": 10,
-    "Half_Minute": 11,
-    "Completed": 12,
-    "help":13
-}
-SPEAKER_TIME_DICT = {
-    # command
-    "redraw map": 2,
-    "charge": 1,
-    "start": 2,
-    "sleep": 2,
-    "voice menu off": 2,
-    "hand operation": 4,
-    # broadcast
-    "Time_Out": 4,
-    "Menu_Start": 6,
-    "Sure?": 2,
-    "Will": 1,
-    "Half_Minute": 7,
-    "Completed": 2,
-    "help":3
-}
-#   Speaker Command
-PLAY_SONG = b'\xAA\x07\x02\x00'
-PLAY = b'\xAA\x02\x00\xAC'
-MIC_INI_TIME_GAP = 1 # unit:second
-MAX_VOLUME = 30
-MIN_VOLUME = 1
-VOLUME_SET = b'\xAA\x13\x01'
-
-# Microphone ports Note: The last number of MIC_SSL_port must be different from that of MIC_Traditional_SSL_port.
-MIC_SSL_port="3-2.2.1"
-MIC_Traditional_SSL_port="3-2.4"
-RECORD_DEVICE_NAME = "USB Camera-B4.09.24.1"
+OBSTACLE_DISTANCE = 0.015 * SCAN_UNIT  # 15 cm detection
