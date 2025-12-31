@@ -117,15 +117,15 @@ class LiDAR_YDLIDAR:
             start_time = time.time()
             im = np.copy(self.scan_img)
             im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
-            size = int(self.size * self.scope)
-            im = Image.fromarray(im)
-            im = im.resize((size, size), Image.BILINEAR)
+            # size = int(self.size * self.scope)
+            # im = Image.fromarray(im)
+            # im = im.resize((size, size), Image.BILINEAR)
             im = np.array(im)
             print("LiDAR image resize time:", time.time() - start_time)
-            if show:
-                cv2.imshow("LiDAR", im)
-                cv2.waitKey(1)
-            print("LiDAR image prepare time:", time.time() - start_time)
+            # if show:
+            #     cv2.imshow("LiDAR", im)
+            #     cv2.waitKey(1)
+            # print("LiDAR image prepare time:", time.time() - start_time)
             if save:
                 # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
                 save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
