@@ -54,7 +54,7 @@ WALKER_LEFT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_RIGHT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 
 # LiDAR center point
-CENTER_TO_LIDAR = 0.05 * SCAN_UNIT  # 5cm, just for painting the center
+CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT ) # 5cm, just for painting the center
 
 # obstacle part
-OBSTACLE_DISTANCE = 0.015 * SCAN_UNIT  # 15 cm detection
+OBSTACLE_DISTANCE = int(0.015 * SCAN_UNIT)  # 15 cm detection
