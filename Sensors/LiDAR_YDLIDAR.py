@@ -87,7 +87,7 @@ class LiDAR_YDLIDAR:
     def lidar_settings(self,):
         self.lidar.setlidaropt(ydlidar.LidarPropLidarType, ydlidar.TYPE_TRIANGLE)
         self.lidar.setlidaropt(ydlidar.LidarPropDeviceType, ydlidar.YDLIDAR_TYPE_SERIAL)
-        self.lidar.setlidaropt(ydlidar.LidarPropScanFrequency, 20.0)
+        self.lidar.setlidaropt(ydlidar.LidarPropScanFrequency, 10.0)
         self.lidar.setlidaropt(ydlidar.LidarPropSampleRate, 3)
         self.lidar.setlidaropt(ydlidar.LidarPropSingleChannel, True)
         self.lidar.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
@@ -108,7 +108,7 @@ class LiDAR_YDLIDAR:
         for i in range(len(original_list)):
             print(f"distance:{i}", original_list[i][2],"m")
             theta = original_list[i][1]
-            distance = original_list[i][2] * 100 # unit: m->cm, cm is enough, mm will not bring more scan point
+            distance = original_list[i][2] * SCAN_UNIT # unit: mm
             # distance = original_list[i][2]  # unit: mm
             # turn distance*theta -> x-y axis in the scan image
             index_x = int(distance * math.cos(theta) + self.half_size)
