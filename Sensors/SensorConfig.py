@@ -39,7 +39,7 @@ SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking 
 INFRARED_SENSOR_NUM = 8
 
 #   LiDAR Configuration
-SCAN_UNIT = 1000   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
+SCAN_UNIT = 100   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
 # scanning configurations
 SCAN_SIZE = int(SCAN_UNIT * 3)
 HALF_SIZE = int(SCAN_SIZE / 2)
@@ -54,7 +54,7 @@ WALKER_LEFT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_RIGHT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 
 # LiDAR center point
-CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT ) # 5cm, just for painting the center
+CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT) # 5cm, just for painting the center
 
 # obstacle part
 OBSTACLE_DISTANCE = int(0.015 * SCAN_UNIT)  # 15 cm detection
