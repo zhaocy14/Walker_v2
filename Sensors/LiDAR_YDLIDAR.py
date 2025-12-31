@@ -60,7 +60,6 @@ class LiDAR_YDLIDAR:
                                  self.walker_left_boundary+self.walker_right_boundary))
         # center point is the geometry center of the walker
         self.center_point = np.array([WALKER_TOP_BOUNDARY+CENTER_TO_LIDAR,WALKER_LEFT_BOUNDARY])
-        self.is_show = is_show
 
         # obstacle part
         # five regions to detect the obstacle
@@ -72,6 +71,10 @@ class LiDAR_YDLIDAR:
         self.ob_right = 0
         # obstacle detection threshold
         self.obstacle_distance = OBSTACLE_DISTANCE  # front obstacle distance
+
+        # show & save
+        self.is_show = is_show
+        self.save_freq = 100  # save frequency in how many scans
 
         # event
         self.lidar_process_event = threading.Event()
@@ -95,7 +98,7 @@ class LiDAR_YDLIDAR:
         self.lidar.setlidaropt(ydlidar.LidarPropIntenstiy, False)  # 若需强度信息，设为True
         print("YDLIDAR参数配置完成")
 
-    def turn_to_img(self, original_list: list, show: bool = False, save:bool = False) -> None:
+    def turn_to_img(self, original_list: list, show: bool = False, is_save:bool=False) -> None:
         """
         turn the scan list to an image
         :param original_list: a list of the [angle, distance, quality]
@@ -107,33 +110,27 @@ class LiDAR_YDLIDAR:
             theta = original_list[i][1]
             distance = original_list[i][2] * SCAN_UNIT # unit: mm
             # turn distance*theta -> x-y axis in the scan image
-            index_x = int(distance * math.cos(theta) + self.half_size)
-            index_y = int(distance * math.sin(theta) + self.half_size)
+            index_x = int(distance * math.sin(theta) + self.half_size)
+            index_y = int(distance * math.cos(theta) + self.half_size)
             index_x = min(max(index_x, 0), self.size - 1)
             index_y = min(max(index_y, 0), self.size - 1)
             self.scan_img[index_y, index_x] = 1
         self.scan_img = np.flipud(self.scan_img)
-        if save or show:
-            start_time = time.time()
+        if is_save:
             im = np.copy(self.scan_img)
             im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
-            # size = int(self.size * self.scope)
-            # im = Image.fromarray(im)
-            # im = im.resize((size, size), Image.BILINEAR)
-            im = np.array(im)
-            print("LiDAR image resize time:", time.time() - start_time)
+            # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
+            save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
+            # 储存到根部目录下的log下的lidar文件夹中
+            if not os.path.exists("./log/lidar/"):
+                os.makedirs("./log/lidar/")
+            cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
             # if show:
+            #     size = int(self.size * self.scope)
+            #     im = Image.fromarray(im)
+            #     im = im.resize((size, size), Image.BILINEAR)
             #     cv2.imshow("LiDAR", im)
             #     cv2.waitKey(1)
-            # print("LiDAR image prepare time:", time.time() - start_time)
-            if save:
-                # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
-                save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
-                # 储存到根部目录下的log下的lidar文件夹中
-                if not os.path.exists("./log/lidar/"):
-                    os.makedirs("./log/lidar/")
-                cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
-            print("LiDAR image show/save time:", time.time() - start_time)
 
     def detect_leg(self, kmeans: KMeans, show: bool = False) -> (np.ndarray, np.ndarray):
         """
@@ -208,6 +205,7 @@ class LiDAR_YDLIDAR:
 
     def scan(self):
         try_times = 0
+        scan_time_for_save = 0
         while True:
             try:
                 self.lidar_process_event.wait()
@@ -215,14 +213,15 @@ class LiDAR_YDLIDAR:
                     scan = ydlidar.LaserScan()
                     r = self.lidar.doProcessSimple(scan)
                     if r:
-                        # print(f"\n===== 新帧数据（时间戳: {scan.stamp}） =====")
-                        # print(f"扫描频率: {1.0 / scan.config.scan_time:.2f} Hz")
-                        # print(f"点数: {scan.points.size()}")
+                        scan_time_for_save += 1
                         temp_list = []
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
-                        self.turn_to_img(temp_list, save=True)
+                        if scan_time_for_save % self.save_freq == 0:
+                            self.turn_to_img(temp_list, is_save=True)
+                        else:
+                            self.turn_to_img(temp_list, is_save=False)
                         # detect obstacle, but not appropriate for the low lidar
                         # self.detect_obstacle(True)
                         # detect leg
