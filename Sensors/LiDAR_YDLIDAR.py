@@ -87,7 +87,7 @@ class LiDAR_YDLIDAR:
     def lidar_settings(self,):
         self.lidar.setlidaropt(ydlidar.LidarPropLidarType, ydlidar.TYPE_TRIANGLE)
         self.lidar.setlidaropt(ydlidar.LidarPropDeviceType, ydlidar.YDLIDAR_TYPE_SERIAL)
-        self.lidar.setlidaropt(ydlidar.LidarPropScanFrequency, 10.0)
+        self.lidar.setlidaropt(ydlidar.LidarPropScanFrequency, 20.0)
         self.lidar.setlidaropt(ydlidar.LidarPropSampleRate, 3)
         self.lidar.setlidaropt(ydlidar.LidarPropSingleChannel, True)
         self.lidar.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
