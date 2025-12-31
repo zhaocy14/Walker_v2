@@ -129,7 +129,7 @@ class LiDAR_YDLIDAR:
                 # 储存到根部目录下的log下的lidar文件夹中
                 if not os.path.exists("./log/lidar/"):
                     os.makedirs("./log/lidar/")
-                cv2.imwrite("./log/lidar/img.jpg", save_img)
+                cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
 
     def detect_leg(self, kmeans: KMeans, show: bool = False) -> (np.ndarray, np.ndarray):
         """
