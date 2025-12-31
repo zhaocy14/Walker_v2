@@ -106,7 +106,7 @@ class LiDAR_YDLIDAR:
         """
         self.scan_img[:] = 0
         for i in range(len(original_list)):
-            print(original_list[i][2])
+            print(f"distance:{i}", original_list[i][2],"m")
             theta = original_list[i][1]
             distance = original_list[i][2] * 100 # unit: m->cm, cm is enough, mm will not bring more scan point
             # distance = original_list[i][2]  # unit: mm
