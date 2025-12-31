@@ -125,6 +125,7 @@ class LiDAR_YDLIDAR:
             if not os.path.exists("./log/lidar/"):
                 os.makedirs("./log/lidar/")
             cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
+            print("LiDAR图像已保存到 ./log/lidar/lidar_img.jpg")
             # if show:
             #     size = int(self.size * self.scope)
             #     im = Image.fromarray(im)
