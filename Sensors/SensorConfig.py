@@ -39,9 +39,9 @@ SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking 
 INFRARED_SENSOR_NUM = 8
 
 #   LiDAR Configuration
-SCAN_UNIT = 100   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
+SCAN_UNIT = 1000   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
 # scanning configurations
-SCAN_SIZE = int(SCAN_UNIT * 3)
+SCAN_SIZE = int(SCAN_UNIT * 2)
 HALF_SIZE = int(SCAN_SIZE / 2)
 # old version of filtering useless data
 COLUMN_BOUNDARY = int(HALF_SIZE - 0.2*SCAN_UNIT)
