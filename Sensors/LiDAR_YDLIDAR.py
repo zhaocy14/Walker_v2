@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 
 class LiDAR_YDLIDAR:
-    def __init__(self, is_show: bool = False):
+    def __init__(self, text_show: bool = False, cv_show: bool = False):
         # 初始化雷达
         ydlidar.os_init()
         ports = ydlidar.lidarPortList()
@@ -73,8 +73,9 @@ class LiDAR_YDLIDAR:
         self.obstacle_distance = OBSTACLE_DISTANCE  # front obstacle distance
 
         # show & save
-        self.is_show = is_show
-        self.save_freq = 100  # save frequency in how many scans
+        self.text_show = text_show
+        self.cv_show = cv_show
+        self.save_freq = 30  # save frequency in how many scans
 
         # event
         self.lidar_process_event = threading.Event()
@@ -98,12 +99,11 @@ class LiDAR_YDLIDAR:
         self.lidar.setlidaropt(ydlidar.LidarPropIntenstiy, False)  # 若需强度信息，设为True
         print("YDLIDAR参数配置完成")
 
-    def turn_to_img(self, original_list: list, show: bool = False, is_save:bool=False) -> None:
+    def turn_to_img(self, original_list: list, is_save:bool=False) -> None:
         """
         turn the scan list to an image
         :param original_list: a list of the [angle, distance, quality]
-        :param show: to display the top-view map
-
+        :is_save: whether to save the image
         """
         self.scan_img[:] = 0
         for i in range(len(original_list)):
@@ -128,14 +128,14 @@ class LiDAR_YDLIDAR:
             cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
             used_time = time.time() - start_time
             print("LiDAR图像已保存到 ./log/lidar/lidar_img.jpg, 用时%.4f秒" % used_time)
-            # if show:
-            #     size = int(self.size * self.scope)
-            #     im = Image.fromarray(im)
-            #     im = im.resize((size, size), Image.BILINEAR)
-            #     cv2.imshow("LiDAR", im)
-            #     cv2.waitKey(1)
+        if self.cv_show:
+            size = int(self.size * self.scope)
+            im = Image.fromarray(im)
+            im = im.resize((size, size), Image.BILINEAR)
+            cv2.imshow("LiDAR", im)
+            cv2.waitKey(1)
 
-    def detect_leg(self, kmeans: KMeans, show: bool = False) -> (np.ndarray, np.ndarray):
+    def detect_leg(self, kmeans: KMeans, is_save:bool=False) -> (np.ndarray, np.ndarray):
         """
         Analyze the top-view map. Using Kmeans to
         :param kmeans: A Kmeans module
@@ -147,16 +147,13 @@ class LiDAR_YDLIDAR:
                         self.half_size - self.walker_left_boundary:self.half_size + self.walker_right_boundary]
         self.leg_img[0:self.walker_top_boundary+7, :] = 0 # this line is to wipe out the scanning inside the main box
 
-        # what is this ???
-        # detect_leg_img = np.zeros((self.leg_img.shape))
-        # detect_leg_img[self.walker_top_boundary:-1, 15:-15] = self.leg_img[18:-1, 15:-15]
         if self.leg_img.sum() >= 2:
             index = np.where(self.leg_img == 1)
             sample = np.c_[index[0], index[1]]
             kmeans.fit(sample)  # TODO: this part will consume 90% of CPU
             center_1 = np.around(kmeans.cluster_centers_[0]).astype(int)
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
-            if show:
+            if self.cv_show or is_save:
                 # to show the leg position in the image
                 self.leg_img[center_1[0] - 2: center_1[0] + 2, center_1[1] - 2:center_1[1] + 2] = 1
                 self.leg_img[center_2[0] - 2:center_2[0] + 2, center_2[1] - 2:center_2[1] + 2] = 1
@@ -165,15 +162,25 @@ class LiDAR_YDLIDAR:
                 self.walker_left_boundary - 1:self.walker_left_boundary + 1] = 1
                 # im_show = im + img
                 im_show = self.leg_img
-                # transform to Image to change the size of the print image
-                im_show = Image.fromarray(im_show)
-                img_scope = 5
-                img_size_row = (self.walker_top_boundary + self.walker_bottom_boundary) * img_scope
-                img_size_column = (self.walker_left_boundary + self.walker_right_boundary) * img_scope
-                im_show = im_show.resize((img_size_column, img_size_row), Image.BILINEAR)
-                im_show = np.array(im_show)
-                cv2.imshow("leg", im_show)
-                cv2.waitKey(1)
+                if self.cv_show:
+                    # transform to Image to change the size of the print image
+                    im_show = Image.fromarray(im_show)
+                    img_scope = 5
+                    img_size_row = (self.walker_top_boundary + self.walker_bottom_boundary) * img_scope
+                    img_size_column = (self.walker_left_boundary + self.walker_right_boundary) * img_scope
+                    im_show = im_show.resize((img_size_column, img_size_row), Image.BILINEAR)
+                    im_show = np.array(im_show)
+                    cv2.imshow("leg", im_show)
+                    cv2.waitKey(1)
+                if is_save:
+                    start_time = time.time()
+                    save_img = cv2.cvtColor((im_show * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
+                    # 储存到根部目录下的log下的lidar文件夹中
+                    if not os.path.exists("./log/lidar/"):
+                        os.makedirs("./log/lidar/")
+                    cv2.imwrite("./log/lidar/leg_img.jpg", save_img)
+                    used_time = time.time() - start_time
+                    print("脚图像已保存到 ./log/lidar/leg_img.jpg, 用时%.4f秒" % used_time)
             if center_1[1] < center_2[1]:
                 self.left_leg = self.center_point - center_1
                 self.right_leg = self.center_point - center_2
@@ -221,15 +228,17 @@ class LiDAR_YDLIDAR:
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
-                        if scan_time_for_save % self.save_freq == 0:
+                        if scan_time_for_save > self.save_freq:
+                            scan_time_for_save = 0
                             self.turn_to_img(temp_list, is_save=True)
+                            # self.detect_obstacle(True)
+                            self.detect_leg(self.kmeans, is_save=True)
                         else:
                             self.turn_to_img(temp_list, is_save=False)
-                        # detect obstacle, but not appropriate for the low lidar
-                        # self.detect_obstacle(True)
-                        # detect leg
-                        self.detect_leg(self.kmeans)
-                        if self.is_show:
+                            # self.detect_obstacle(True)
+                            self.detect_leg(self.kmeans, is_save=False)
+
+                        if self.text_show:
                             print(self.left_leg,self.right_leg)
 
                     else:
@@ -267,7 +276,7 @@ class LiDAR_YDLIDAR:
         return self.leg_img
 
 if __name__ == "__main__":
-    lidar = LiDAR_YDLIDAR(is_show=True)
+    lidar = LiDAR_YDLIDAR(text_show=True)
     # just for checking the LiDAR
     # lidar_instance = LiDAR(is_zmq=False)
     # lidar_instance.python_scan(is_show=True)
