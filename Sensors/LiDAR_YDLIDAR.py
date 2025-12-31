@@ -117,6 +117,7 @@ class LiDAR_YDLIDAR:
             self.scan_img[index_y, index_x] = 1
         self.scan_img = np.flipud(self.scan_img)
         if is_save:
+            start_time = time.time()
             im = np.copy(self.scan_img)
             im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
             # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
@@ -125,7 +126,8 @@ class LiDAR_YDLIDAR:
             if not os.path.exists("./log/lidar/"):
                 os.makedirs("./log/lidar/")
             cv2.imwrite("./log/lidar/lidar_img.jpg", save_img)
-            print("LiDAR图像已保存到 ./log/lidar/lidar_img.jpg")
+            used_time = time.time() - start_time
+            print("LiDAR图像已保存到 ./log/lidar/lidar_img.jpg, 用时%.4f秒" % used_time)
             # if show:
             #     size = int(self.size * self.scope)
             #     im = Image.fromarray(im)
