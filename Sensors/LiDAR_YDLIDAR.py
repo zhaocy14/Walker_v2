@@ -50,6 +50,7 @@ class LiDAR_YDLIDAR:
         self.column_boundary = COLUMN_BOUNDARY
         self.filter_theta = FILTER_THETA
         self.bottom_boundary = BOTTOM_BOUNDARY
+
         # new version of filtering useless data
         self.walker_top_boundary = WALKER_TOP_BOUNDARY
         self.walker_bottom_boundary = WALKER_BOTTOM_BOUNDARY
@@ -105,15 +106,15 @@ class LiDAR_YDLIDAR:
         """
         self.scan_img[:] = 0
         for i in range(len(original_list)):
+            print(original_list[i][2])
             theta = original_list[i][1]
             distance = original_list[i][2] * 100 # unit: m->cm, cm is enough, mm will not bring more scan point
             # distance = original_list[i][2]  # unit: mm
             # turn distance*theta -> x-y axis in the scan image
-            index_y = int(distance * math.cos(theta) + self.half_size)
-            index_x = int(distance * math.sin(theta) + self.half_size)
+            index_x = int(distance * math.cos(theta) + self.half_size)
+            index_y = int(distance * math.sin(theta) + self.half_size)
             index_x = min(max(index_x, 0), self.size - 1)
             index_y = min(max(index_y, 0), self.size - 1)
-
             self.scan_img[index_y, index_x] = 1
         self.scan_img = np.flipud(self.scan_img)
         if save or show:

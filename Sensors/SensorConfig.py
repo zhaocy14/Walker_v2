@@ -39,6 +39,7 @@ SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking 
 INFRARED_SENSOR_NUM = 8
 
 #   LiDAR Configuration
+SCAN_UNIT = 1000   # 1mm
 # scanning configurations
 SCAN_SIZE = 300
 HALF_SIZE = int(SCAN_SIZE / 2)
