@@ -103,7 +103,6 @@ class LiDAR_YDLIDAR:
 
         """
         self.scan_img[:] = 0
-        start_time = time.time()
         for i in range(len(original_list)):
             theta = original_list[i][1]
             distance = original_list[i][2] * SCAN_UNIT # unit: mm
@@ -113,19 +112,20 @@ class LiDAR_YDLIDAR:
             index_x = min(max(index_x, 0), self.size - 1)
             index_y = min(max(index_y, 0), self.size - 1)
             self.scan_img[index_y, index_x] = 1
-        print("LiDAR scan to image time:", time.time() - start_time)
         self.scan_img = np.flipud(self.scan_img)
-        print("LiDAR image flip time:", time.time() - start_time)
         if save or show:
+            start_time = time.time()
             im = np.copy(self.scan_img)
             im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
             size = int(self.size * self.scope)
             im = Image.fromarray(im)
             im = im.resize((size, size), Image.BILINEAR)
             im = np.array(im)
+            print("LiDAR image resize time:", time.time() - start_time)
             if show:
                 cv2.imshow("LiDAR", im)
                 cv2.waitKey(1)
+            print("LiDAR image prepare time:", time.time() - start_time)
             if save:
                 # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
                 save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
