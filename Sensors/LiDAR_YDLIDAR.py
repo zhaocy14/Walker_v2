@@ -46,18 +46,14 @@ class LiDAR_YDLIDAR:
         self.half_size = HALF_SIZE
         self.scan_img = np.zeros((self.size,self.size))
 
-        # old version of filtering useless data
-        self.column_boundary = COLUMN_BOUNDARY
-        self.filter_theta = FILTER_THETA
-        self.bottom_boundary = BOTTOM_BOUNDARY
-
         # new version of filtering useless data
-        self.walker_top_boundary = WALKER_TOP_BOUNDARY
-        self.walker_bottom_boundary = WALKER_BOTTOM_BOUNDARY
-        self.walker_left_boundary = WALKER_LEFT_BOUNDARY
-        self.walker_right_boundary = WALKER_RIGHT_BOUNDARY
-        self.leg_img = np.zeros((self.walker_top_boundary+self.walker_bottom_boundary,
-                                 self.walker_left_boundary+self.walker_right_boundary))
+        self.walker_tb = WALKER_TOP_BOUNDARY
+        self.walker_bb = WALKER_BOTTOM_BOUNDARY
+        self.walker_lb = WALKER_LEFT_BOUNDARY
+        self.walker_rb = WALKER_RIGHT_BOUNDARY
+        self.walker_box = WALKER_BOX_BOUNDARY_VERTICAL
+        self.leg_img = np.zeros((self.walker_tb + self.walker_bb,
+                                 self.walker_lb + self.walker_rb))
         # center point is the geometry center of the walker
         self.center_point = np.array([WALKER_TOP_BOUNDARY+CENTER_TO_LIDAR,WALKER_LEFT_BOUNDARY])
 
@@ -129,6 +125,7 @@ class LiDAR_YDLIDAR:
             used_time = time.time() - start_time
             print("LiDAR图像已保存到 ./log/lidar/lidar_img.jpg, 用时%.4f秒" % used_time)
         if self.cv_show:
+            # not recommended
             size = int(self.size * self.scope)
             im = Image.fromarray(im)
             im = im.resize((size, size), Image.BILINEAR)
@@ -139,18 +136,25 @@ class LiDAR_YDLIDAR:
         """
         Analyze the top-view map. Using Kmeans to
         :param kmeans: A Kmeans module
-        :param show:
+        :param is_save
         :return:
         """
         # leg-img is the detecting walking area
-        self.leg_img[:, :] = self.scan_img[self.half_size - self.walker_top_boundary:self.half_size + self.walker_bottom_boundary,
-                        self.half_size - self.walker_left_boundary:self.half_size + self.walker_right_boundary]
-        self.leg_img[0:self.walker_top_boundary+7, :] = 0 # this line is to wipe out the scanning inside the main box
+        # idea is simple, first you need the distance between the lidar center point and the boundry you define
+        # then as the half_size of the detecting area is known
+        # then convert to the matrix axis:
+        self.leg_img[:, :] = self.scan_img[self.half_size - self.walker_tb:self.half_size + self.walker_bb,
+                        self.half_size - self.walker_lb:self.half_size + self.walker_rb]
+
+        # remove the box area detection
+        # basic idea is simply removing the box related rows
+        # as you don't need to count the points outside the walker boundary right?
+        self.leg_img[0:self.walker_tb + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
 
         if self.leg_img.sum() >= 2:
             index = np.where(self.leg_img == 1)
             sample = np.c_[index[0], index[1]]
-            kmeans.fit(sample)  # TODO: this part will consume 90% of CPU
+            kmeans.fit(sample)
             center_1 = np.around(kmeans.cluster_centers_[0]).astype(int)
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
             if self.cv_show or is_save:
@@ -158,16 +162,16 @@ class LiDAR_YDLIDAR:
                 self.leg_img[center_1[0] - 2: center_1[0] + 2, center_1[1] - 2:center_1[1] + 2] = 1
                 self.leg_img[center_2[0] - 2:center_2[0] + 2, center_2[1] - 2:center_2[1] + 2] = 1
                 # to show the LiDAR point in the image
-                self.leg_img[self.walker_top_boundary - 1:self.walker_top_boundary + 1,
-                self.walker_left_boundary - 1:self.walker_left_boundary + 1] = 1
+                self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
+                self.walker_lb - 1:self.walker_lb + 1] = 1
                 # im_show = im + img
                 im_show = self.leg_img
                 if self.cv_show:
                     # transform to Image to change the size of the print image
                     im_show = Image.fromarray(im_show)
                     img_scope = 5
-                    img_size_row = (self.walker_top_boundary + self.walker_bottom_boundary) * img_scope
-                    img_size_column = (self.walker_left_boundary + self.walker_right_boundary) * img_scope
+                    img_size_row = (self.walker_tb + self.walker_bb) * img_scope
+                    img_size_column = (self.walker_lb + self.walker_rb) * img_scope
                     im_show = im_show.resize((img_size_column, img_size_row), Image.BILINEAR)
                     im_show = np.array(im_show)
                     cv2.imshow("leg", im_show)
@@ -199,10 +203,10 @@ class LiDAR_YDLIDAR:
         However, the low lidar is blocked by the surroundings
         Useless now
         """
-        obstacle_area = self.scan_img[self.half_size - self.walker_top_boundary - self.obstacle_distance:
-                            self.half_size + self.bottom_boundary + 1,
-                        self.half_size - self.walker_left_boundary - self.obstacle_distance:
-                        self.half_size + self.walker_right_boundary + self.obstacle_distance + 1]
+        obstacle_area = self.scan_img[self.half_size - self.walker_tb - self.obstacle_distance:
+                            self.half_size + self.walker_bb + 1,
+                        self.half_size - self.walker_lb - self.obstacle_distance:
+                        self.half_size + self.walker_rb + self.obstacle_distance + 1]
         self.ob_front_left = obstacle_area[0:self.obstacle_distance, 0:self.obstacle_distance].sum()
         self.ob_front = obstacle_area[0:self.obstacle_distance, self.obstacle_distance:-self.obstacle_distance].sum()
         self.ob_front_right = obstacle_area[0:self.obstacle_distance, -self.obstacle_distance:-1].sum()

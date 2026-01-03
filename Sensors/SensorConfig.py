@@ -39,7 +39,7 @@ SKIN_EMERGENCY_CHANGE_RATE = 50     # Abnormal pressure change rate for locking 
 INFRARED_SENSOR_NUM = 8
 
 #   LiDAR Configuration
-SCAN_UNIT = 1000   # 1m = SCAN_UNIT * unit, 100cm, 1000mm
+SCAN_UNIT = 1000   # 1m = SCAN_UNIT * unit, 100 for cm, 1000 for mm; at least 100
 # scanning configurations
 SCAN_SIZE = int(SCAN_UNIT * 1.5)
 HALF_SIZE = int(SCAN_SIZE / 2)
@@ -49,9 +49,10 @@ BOTTOM_BOUNDARY = int(HALF_SIZE - 1*SCAN_UNIT)
 FILTER_THETA = 150
 # new version of filtering useless data
 WALKER_TOP_BOUNDARY = int(0.1039 * SCAN_UNIT) # 0.10386m
-WALKER_BOTTOM_BOUNDARY = int(0.4231 *SCAN_UNIT) # 0.42314m
+WALKER_BOTTOM_BOUNDARY = int(0.4231 * SCAN_UNIT * 2) # 0.42314m x2, considering the backward area
 WALKER_LEFT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_RIGHT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
+WALKER_BOX_BOUNDARY_VERTICAL = int(0.018 * SCAN_UNIT) # approximately the wheel diameter
 
 # LiDAR center point
 CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT) # 5cm, just for painting the center
