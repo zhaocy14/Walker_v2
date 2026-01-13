@@ -167,7 +167,8 @@ class LiDAR_YDLIDAR:
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
         rear_left_wheel_col_idx-rear_wheel_width:rear_left_wheel_col_idx+rear_wheel_width
         ] = 0
-
+        print(rear_wheel_row_idx-self.rear_wheel_siz, rear_wheel_row_idx+self.rear_wheel_siz,
+              rear_left_wheel_col_idx-rear_wheel_width, rear_left_wheel_col_idx+rear_wheel_width)
         self.leg_img[
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
         rear_right_wheel_col_idx-rear_wheel_width:rear_right_wheel_col_idx+rear_wheel_width
