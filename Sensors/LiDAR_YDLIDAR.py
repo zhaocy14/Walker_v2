@@ -159,9 +159,9 @@ class LiDAR_YDLIDAR:
         # but when there's no user, the lidar will detect it
         rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
 
-        rear_left_wheel_col_idx = 30
-        rear_right_wheel_col_idx = -30
-        rear_wheel_width = 15
+        rear_left_wheel_col_idx = 100
+        rear_right_wheel_col_idx = -100
+        rear_wheel_width = 30
 
         self.leg_img[
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
@@ -180,7 +180,6 @@ class LiDAR_YDLIDAR:
             kmeans.fit(sample)
             center_1 = np.around(kmeans.cluster_centers_[0]).astype(int)
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
-            print(center_1, center_2)
             if self.cv_show or is_save:
                 # to show the leg position in the image
                 self.leg_img[center_1[0] - 3: center_1[0] + 3, center_1[1] - 3:center_1[1] + 3] = 1
