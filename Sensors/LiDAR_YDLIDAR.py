@@ -294,7 +294,7 @@ class LiDAR_YDLIDAR:
         return self.leg_img
 
 if __name__ == "__main__":
-    lidar = LiDAR_YDLIDAR(text_show=True)
+    lidar = LiDAR_YDLIDAR(text_show=False)
     # just for checking the LiDAR
     # lidar_instance = LiDAR(is_zmq=False)
     # lidar_instance.python_scan(is_show=True)
