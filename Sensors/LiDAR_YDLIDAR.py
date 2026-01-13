@@ -143,12 +143,12 @@ class LiDAR_YDLIDAR:
         # remove the box area detection
         # basic idea is simply removing the box related rows
         # as you don't need to count the points outside the walker boundary right?
-        self.leg_img[0:WALKER_LEFT_BOUNDARY + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
+        self.leg_img[0:WALKER_TOP_BOUNDARY + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
 
         # then you need to filter out the rear wheel area
         # actually, most of the time the leg will block the rear wheel
         # but when there's no user, the lidar will detect it
-        rear_wheel_row_idx = WALKER_LEFT_BOUNDARY + WALKER_REAR_WHEEL_ROW_IDX
+        rear_wheel_row_idx = WALKER_TOP_BOUNDARY + WALKER_REAR_WHEEL_ROW_IDX
         rear_left_wheel_col_idx = WALKER_REAR_WHEEL_COL_IDX
         rear_right_wheel_col_idx = -WALKER_REAR_WHEEL_COL_IDX
         rear_wheel_width = WALKER_REAR_WHEEL_WIDTH
