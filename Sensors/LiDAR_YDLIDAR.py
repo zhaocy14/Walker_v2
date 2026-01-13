@@ -58,7 +58,7 @@ class LiDAR_YDLIDAR:
         self.leg_img = np.zeros((self.walker_tb + self.walker_bb,
                                  self.walker_lb + self.walker_rb))
         # center point is the geometry center of the walker
-        self.center_point = np.array([WALKER_TOP_BOUNDARY+CENTER_TO_LIDAR,WALKER_LEFT_BOUNDARY])
+        self.center_point = np.array([WALKER_TOP_BOUNDARY+HUMAN_TO_LIDAR,WALKER_LEFT_BOUNDARY])
 
         # obstacle part
         # five regions to detect the obstacle
@@ -182,8 +182,8 @@ class LiDAR_YDLIDAR:
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
             if self.cv_show or is_save:
                 # to show the leg position in the image
-                self.leg_img[center_1[0] - 5: center_1[0] + 5, center_1[1] - 5:center_1[1] + 5] = 1
-                self.leg_img[center_2[0] - 5:center_2[0] + 5, center_2[1] - 5:center_2[1] + 5] = 1
+                self.leg_img[center_1[0] - 3: center_1[0] + 3, center_1[1] - 3:center_1[1] + 3] = 1
+                self.leg_img[center_2[0] - 3:center_2[0] + 3, center_2[1] - 3:center_2[1] + 3] = 1
                 # # to show the LiDAR point in the image
                 # self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
                 # self.walker_lb - 1:self.walker_lb + 1] = 0

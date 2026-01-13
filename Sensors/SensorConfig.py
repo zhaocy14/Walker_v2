@@ -55,10 +55,10 @@ WALKER_LEFT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_RIGHT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_BOX_BOUNDARY_VERTICAL = int(0.018 * SCAN_UNIT) # approximately the wheel diameter
 WALKER_REAR_WHEEL = int(0.527 * SCAN_UNIT)
-WALKER_REAR_WHEEL_SIZE = int(0.03 * SCAN_UNIT)
+WALKER_REAR_WHEEL_SIZE = int(0.3 * SCAN_UNIT)
 
 # LiDAR center point
-CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT) # 5cm, just for painting the center
+HUMAN_TO_LIDAR = int(0.5 * SCAN_UNIT) # human operating height to LiDAR center
 
 # obstacle part
 OBSTACLE_DISTANCE = int(0.015 * SCAN_UNIT)  # 15 cm detection
