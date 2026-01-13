@@ -116,7 +116,7 @@ class SoftSkin(object):
 
 if __name__ == '__main__':
 
-    skin = SoftSkin(is_show=True)
+    skin = SoftSkin(is_show=False)
     while True:
         time.sleep(0.2)
         print("pressure data:", skin.pressure_data, "abnormal:", skin.is_abnormal)
