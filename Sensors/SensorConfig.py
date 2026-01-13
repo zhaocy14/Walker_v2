@@ -64,4 +64,4 @@ INFINITE_FAR = int(3 * SCAN_UNIT)  # represent infinite far distance in LiDAR da
 HUMAN_TO_LIDAR = int(0.5 * SCAN_UNIT) # human operating height to LiDAR center
 
 # obstacle part
-OBSTACLE_DISTANCE = int(0.015 * SCAN_UNIT)  # 15 cm detection
+OBSTACLE_DISTANCE = int(0.15 * SCAN_UNIT)  # 15 cm detection

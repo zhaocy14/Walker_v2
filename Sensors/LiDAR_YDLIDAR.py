@@ -43,18 +43,13 @@ class LiDAR_YDLIDAR:
 
         # for 2D scan images sizes
         self.size = SCAN_SIZE
-        self.half_size = HALF_SIZE
         self.scan_img = np.zeros((self.size,self.size))
 
         # new version of filtering useless data
-        self.walker_tb = WALKER_TOP_BOUNDARY
-        self.walker_bb = WALKER_BOTTOM_BOUNDARY
-        self.walker_lb = WALKER_LEFT_BOUNDARY
-        self.walker_rb = WALKER_RIGHT_BOUNDARY
         self.walker_box = WALKER_BOX_BOUNDARY_VERTICAL
 
-        self.leg_img = np.zeros((self.walker_tb + self.walker_bb,
-                                 self.walker_lb + self.walker_rb))
+        self.leg_img = np.zeros((WALKER_TOP_BOUNDARY + WALKER_BOTTOM_BOUNDARY,
+                                 WALKER_LEFT_BOUNDARY + WALKER_RIGHT_BOUNDARY))
         # center point is the geometry center of the walker
         self.center_point = np.array([WALKER_TOP_BOUNDARY+HUMAN_TO_LIDAR,WALKER_LEFT_BOUNDARY])
 
@@ -107,8 +102,8 @@ class LiDAR_YDLIDAR:
             theta = original_list[i][1]
             distance = original_list[i][2] * SCAN_UNIT # unit: mm
             # turn distance*theta -> x-y axis in the scan image
-            index_x = int(distance * math.sin(theta) + self.half_size)
-            index_y = int(distance * math.cos(theta) + self.half_size)
+            index_x = int(distance * math.sin(theta) + HALF_SIZE)
+            index_y = int(distance * math.cos(theta) + HALF_SIZE)
             index_x = min(max(index_x, 0), self.size - 1)
             index_y = min(max(index_y, 0), self.size - 1)
             self.scan_img[index_y, index_x] = 1
@@ -116,7 +111,7 @@ class LiDAR_YDLIDAR:
         if is_save:
             start_time = time.time()
             im = np.copy(self.scan_img)
-            im[self.half_size - 5:self.half_size + 5, self.half_size - 5:self.half_size + 5] = 1
+            im[HALF_SIZE - 5:HALF_SIZE + 5, HALF_SIZE - 5:HALF_SIZE + 5] = 1
             # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
             save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
             # 储存到根部目录下的log下的lidar文件夹中
@@ -144,18 +139,18 @@ class LiDAR_YDLIDAR:
         # idea is simple, first you need the distance between the lidar center point and the boundary you define
         # then as the half_size of the detecting area is known
         # then convert to the matrix axis:
-        self.leg_img[:, :] = self.scan_img[self.half_size - self.walker_tb:self.half_size + self.walker_bb,
-                        self.half_size - self.walker_lb:self.half_size + self.walker_rb]
+        self.leg_img[:, :] = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY:HALF_SIZE + WALKER_BOTTOM_BOUNDARY,
+                        HALF_SIZE - WALKER_LEFT_BOUNDARY:HALF_SIZE + WALKER_RIGHT_BOUNDARY]
 
         # remove the box area detection
         # basic idea is simply removing the box related rows
         # as you don't need to count the points outside the walker boundary right?
-        self.leg_img[0:self.walker_tb + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
+        self.leg_img[0:WALKER_LEFT_BOUNDARY + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
 
         # then you need to filter out the rear wheel area
         # actually, most of the time the leg will block the rear wheel
         # but when there's no user, the lidar will detect it
-        rear_wheel_row_idx = self.walker_tb + WALKER_REAR_WHEEL_ROW_IDX
+        rear_wheel_row_idx = WALKER_LEFT_BOUNDARY + WALKER_REAR_WHEEL_ROW_IDX
         rear_left_wheel_col_idx = WALKER_REAR_WHEEL_COL_IDX
         rear_right_wheel_col_idx = -WALKER_REAR_WHEEL_COL_IDX
         rear_wheel_width = WALKER_REAR_WHEEL_WIDTH
@@ -189,8 +184,8 @@ class LiDAR_YDLIDAR:
                     # transform to Image to change the size of the print image
                     im_show = Image.fromarray(im_show)
                     img_scope = 5
-                    img_size_row = (self.walker_tb + self.walker_bb) * img_scope
-                    img_size_column = (self.walker_lb + self.walker_rb) * img_scope
+                    img_size_row = (WALKER_TOP_BOUNDARY + WALKER_BOTTOM_BOUNDARY) * img_scope
+                    img_size_column = (WALKER_LEFT_BOUNDARY + WALKER_RIGHT_BOUNDARY) * img_scope
                     im_show = im_show.resize((img_size_column, img_size_row), Image.BILINEAR)
                     im_show = np.array(im_show)
                     cv2.imshow("leg", im_show)
@@ -218,27 +213,26 @@ class LiDAR_YDLIDAR:
 
     def detect_obstacle(self,is_shown:bool=False):
         """
-        seperate the detecting area into several part
-        However, the low lidar is blocked by the surroundings
-        Useless now
+        set the circular regions to detect the obstacle
         """
-        obstacle_area = self.scan_img[self.half_size - self.walker_tb - self.obstacle_distance:
-                            self.half_size + self.walker_bb + 1,
-                        self.half_size - self.walker_lb - self.obstacle_distance:
-                        self.half_size + self.walker_rb + self.obstacle_distance + 1]
+
+        obstacle_area = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY - self.obstacle_distance:
+                            HALF_SIZE + WALKER_BOTTOM_BOUNDARY,
+                        HALF_SIZE - WALKER_LEFT_BOUNDARY - self.obstacle_distance:
+                        HALF_SIZE + WALKER_RIGHT_BOUNDARY + self.obstacle_distance]
         self.ob_front_left = obstacle_area[0:self.obstacle_distance, 0:self.obstacle_distance].sum()
         self.ob_front = obstacle_area[0:self.obstacle_distance, self.obstacle_distance:-self.obstacle_distance].sum()
         self.ob_front_right = obstacle_area[0:self.obstacle_distance, -self.obstacle_distance:-1].sum()
         # # left and right are blocked, can not well detect obstacle
-        # self.ob_left = obstacle_area[self.obstacle_distance:-1, 0:self.obstacle_distance].sum()
-        # self.ob_right = obstacle_area[self.obstacle_distance:-1, -self.obstacle_distance:-1].sum()
+        self.ob_left = obstacle_area[self.obstacle_distance:-1, 0:self.obstacle_distance].sum()
+        self.ob_right = obstacle_area[self.obstacle_distance:-1, -self.obstacle_distance:-1].sum()
         if is_shown:
             print("Front_Left:%i, Front:%i, Front_Right:%i, Left:%i, Right:%i"%
                   (self.ob_front_left,self.ob_front,self.ob_front_right,self.ob_left,self.ob_right))
 
     def scan(self):
         try_times = 0
-        scan_time_for_save = 3
+        scan_time_for_save = 1000
         is_save_lidar = False   # whether save the whole img
         is_save_leg = True      # whether save the leg scanning area
         while True:
@@ -253,7 +247,7 @@ class LiDAR_YDLIDAR:
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
-                        # self.detect_obstacle(True)
+                        self.detect_obstacle(True)
                         # to save the image every certain scans
                         if scan_time_for_save > self.save_freq:
                             scan_time_for_save = 0
