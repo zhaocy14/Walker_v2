@@ -1,6 +1,9 @@
 import time
 import math
 
+from anyio import current_time
+
+
 class Odometry:
     def __init__(self, X=0.0, Y=0.0, THETA=0.0, Odo_l=0, Odo_r=0,
                  tick_threshold=0):
@@ -118,8 +121,8 @@ class Odometry:
         elif self._THETA <= -math.pi:
             self._THETA += 2 * math.pi
         # print("X,Y,theta",self.X,self.Y,self.THETA)
-        self._previous_time = currnt_time
-        return (self._X, self._Y, self._THETA, self.d_l, self.d_r, self._dX, self._dY,self.dx,self.dy, self.v_l, self.v_r, self.d_theta)
+        self._previous_time = current_time
+        return self._X, self._Y, self._THETA, self.d_l, self.d_r, self._dX, self._dY,self.dx,self.dy, self.v_l, self.v_r, self.d_theta
 
     def getROS_speed(self):
         return (self.V, self.OMEGA, self.Radius)
