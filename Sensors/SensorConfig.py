@@ -48,11 +48,14 @@ COLUMN_BOUNDARY = int(HALF_SIZE - 0.2*SCAN_UNIT)
 BOTTOM_BOUNDARY = int(HALF_SIZE - 1*SCAN_UNIT)
 FILTER_THETA = 150
 # new version of filtering useless data
+# all numerical represent *.* m
 WALKER_TOP_BOUNDARY = int(0.1039 * SCAN_UNIT) # 0.10386m
 WALKER_BOTTOM_BOUNDARY = int(0.4231 * SCAN_UNIT * 2) # 0.42314m x2, considering the backward area
 WALKER_LEFT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_RIGHT_BOUNDARY = int(0.354 * SCAN_UNIT)  # 0.354m
 WALKER_BOX_BOUNDARY_VERTICAL = int(0.018 * SCAN_UNIT) # approximately the wheel diameter
+WALKER_REAR_WHEEL = int(0.527 * SCAN_UNIT)
+WALKER_REAR_WHEEL_SIZE = int(0.025 * SCAN_UNIT)
 
 # LiDAR center point
 CENTER_TO_LIDAR = int(0.05 * SCAN_UNIT) # 5cm, just for painting the center
