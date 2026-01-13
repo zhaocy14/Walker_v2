@@ -143,7 +143,7 @@ class LiDAR_YDLIDAR:
         :return:
         """
         # leg-img is the detecting walking area
-        # idea is simple, first you need the distance between the lidar center point and the boundry you define
+        # idea is simple, first you need the distance between the lidar center point and the boundary you define
         # then as the half_size of the detecting area is known
         # then convert to the matrix axis:
         self.leg_img[:, :] = self.scan_img[self.half_size - self.walker_tb:self.half_size + self.walker_bb,
@@ -153,14 +153,27 @@ class LiDAR_YDLIDAR:
         # basic idea is simply removing the box related rows
         # as you don't need to count the points outside the walker boundary right?
         self.leg_img[0:self.walker_tb + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
+
         # then you need to filter out the rear wheel area
         # actually, most of the time the leg will block the rear wheel
         # but when there's no user, the lidar will detect it
         rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
-        rear_left_wheel_col_idx = 0 #TODO:need to consider
-        rear_right_wheel_col_idx = -1
-        # self.leg_img[rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz, ]
 
+        rear_left_wheel_col_idx = 10
+        rear_right_wheel_col_idx = -10
+        rear_wheel_width = 5
+
+        self.leg_img[
+        rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
+        rear_left_wheel_col_idx-rear_wheel_width:rear_left_wheel_col_idx+rear_wheel_width
+        ] = 0
+
+        self.leg_img[
+        rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
+        rear_right_wheel_col_idx-rear_wheel_width:rear_right_wheel_col_idx+rear_wheel_width
+        ] = 0
+
+        # then do the clustering(k-means)
         if self.leg_img.sum() >= 2:
             index = np.where(self.leg_img == 1)
             sample = np.c_[index[0], index[1]]
@@ -169,8 +182,8 @@ class LiDAR_YDLIDAR:
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
             if self.cv_show or is_save:
                 # to show the leg position in the image
-                self.leg_img[center_1[0] - 2: center_1[0] + 2, center_1[1] - 2:center_1[1] + 2] = 1
-                self.leg_img[center_2[0] - 2:center_2[0] + 2, center_2[1] - 2:center_2[1] + 2] = 1
+                self.leg_img[center_1[0] - 5: center_1[0] + 5, center_1[1] - 5:center_1[1] + 5] = 1
+                self.leg_img[center_2[0] - 5:center_2[0] + 5, center_2[1] - 5:center_2[1] + 5] = 1
                 # to show the LiDAR point in the image
                 self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
                 self.walker_lb - 1:self.walker_lb + 1] = 1
