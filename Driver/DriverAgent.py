@@ -35,12 +35,16 @@ class DriverAgent(object):
         # initialize the odometry
         self.odo = Odometry()
 
+        # initialize the motor drivers
+        self.enable_driver(enable=True)
+
         # record mode
+
         self.disable_mode = disable_mode
 
         # main thread for control
-        # self.thread_control = threading.Thread(target=self.main_control, args=())
-        # self.thread_control.start()
+        self.thread_control = threading.Thread(target=self.main_control, args=())
+        self.thread_control.start()
 
     def __version__(self):
         print("Driver version:", self.version)
@@ -89,7 +93,7 @@ class DriverAgent(object):
         self.driver_serial.set_single_driver_speed(rpm=right_rpm, motor='right')
         print(left_rpm, right_rpm)
 
-    def disable_driver(self):
+    def enable_driver(self, enable: bool = True):
         """
         disable both drivers
         :return:
@@ -105,7 +109,7 @@ class DriverAgent(object):
         while True:
             if self.disable_mode:
                 # in record mode, deactivate the driver
-                self.disable_driver()
+                self.enable_driver(False)
             else:
                 # update the wheel speed
                 self._get_wheels_speed()
@@ -125,4 +129,4 @@ if __name__ == "__main__":
     time.sleep(5)
     driver_ins.update_control_params(speed=0, omega=0.0, radius=0)
     time.sleep(2)
-    driver_ins.disable_driver()
+    driver_ins.enable_driver()
