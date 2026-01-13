@@ -158,10 +158,9 @@ class LiDAR_YDLIDAR:
         # actually, most of the time the leg will block the rear wheel
         # but when there's no user, the lidar will detect it
         rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
-
-        rear_left_wheel_col_idx = 100
-        rear_right_wheel_col_idx = -100
-        rear_wheel_width = 80
+        rear_left_wheel_col_idx = WALKER_REAR_WHEEL_COL_IDX
+        rear_right_wheel_col_idx = -WALKER_REAR_WHEEL_COL_IDX
+        rear_wheel_width = WALKER_REAR_WHEEL_WIDTH
 
         self.leg_img[
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,

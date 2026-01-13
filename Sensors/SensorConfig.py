@@ -57,6 +57,10 @@ WALKER_BOX_BOUNDARY_VERTICAL = int(0.018 * SCAN_UNIT) # approximately the wheel 
 WALKER_REAR_WHEEL = int(0.527 * SCAN_UNIT)
 WALKER_REAR_WHEEL_SIZE = int(0.03 * SCAN_UNIT)
 
+WALKER_REAR_WHEEL_COL_IDX = int(1 * SCAN_UNIT)
+WALKER_REAR_WHEEL_WIDTH = int(0.08 * SCAN_UNIT)
+
+
 # LiDAR center point
 HUMAN_TO_LIDAR = int(0.5 * SCAN_UNIT) # human operating height to LiDAR center
 
