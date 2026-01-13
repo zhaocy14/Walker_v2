@@ -98,9 +98,6 @@ class SoftSkin(object):
             if self.is_show:
                 print(self.voltage_data)
             self.data_process()
-            if self.is_abnormal:
-                print("Softskin abnormal detected!", self.pressure_data)
-                time.sleep(3)
 
     def unlock(self, unlock_time: int = 1):
         record_time = 0  # to record how long does the sensor are
@@ -120,3 +117,6 @@ class SoftSkin(object):
 if __name__ == '__main__':
 
     skin = SoftSkin(is_show=True)
+    while True:
+        time.sleep(0.2)
+        print("pressure data:", skin.pressure_data, "abnormal:", skin.is_abnormal)
