@@ -241,7 +241,7 @@ class LiDAR_YDLIDAR:
 
     def scan(self):
         try_times = 0
-        scan_time_for_save = 0
+        scan_time_for_save = 100
         is_save_lidar = False   # whether save the whole img
         is_save_leg = True      # whether save the leg scanning area
         while True:
