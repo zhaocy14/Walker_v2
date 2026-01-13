@@ -87,9 +87,9 @@ class DriverAgent(object):
         set the wheel speed to the driver
         :return:
         """
-        left_rpm = self._left_spd / (2 * 3.14 * self.wheel_radius) * 60
+        left_rpm = int(self._left_spd / (2 * 3.14 * self.wheel_radius) * 60)
         self.driver_serial.set_single_driver_speed(rpm=left_rpm, motor='left')
-        right_rpm = self._right_spd / (2 * 3.14 * self.wheel_radius) * 60
+        right_rpm = int(self._right_spd / (2 * 3.14 * self.wheel_radius) * 60)
         self.driver_serial.set_single_driver_speed(rpm=right_rpm, motor='right')
         print(left_rpm, right_rpm)
 
