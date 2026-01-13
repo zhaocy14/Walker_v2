@@ -61,8 +61,6 @@ class LiDAR_YDLIDAR:
         self.ob_front_right = 0
         self.ob_left = 0
         self.ob_right = 0
-        # obstacle detection threshold
-        self.obstacle_distance = OBSTACLE_DISTANCE  # front obstacle distance
 
         # show & save
         self.text_show = text_show
@@ -215,17 +213,18 @@ class LiDAR_YDLIDAR:
         """
         set the circular regions to detect the obstacle
         """
-
-        obstacle_area = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY - self.obstacle_distance:
+        obs_dis = OBSTACLE_DISTANCE
+        obstacle_area = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY - obs_dis:
                             HALF_SIZE + WALKER_BOTTOM_BOUNDARY,
-                        HALF_SIZE - WALKER_LEFT_BOUNDARY - self.obstacle_distance:
-                        HALF_SIZE + WALKER_RIGHT_BOUNDARY + self.obstacle_distance]
-        self.ob_front_left = obstacle_area[0:self.obstacle_distance, 0:self.obstacle_distance].sum()
-        self.ob_front = obstacle_area[0:self.obstacle_distance, self.obstacle_distance:-self.obstacle_distance].sum()
-        self.ob_front_right = obstacle_area[0:self.obstacle_distance, -self.obstacle_distance:-1].sum()
+                        HALF_SIZE - WALKER_LEFT_BOUNDARY - obs_dis:
+                        HALF_SIZE + WALKER_RIGHT_BOUNDARY + obs_dis]
+        obs_dis -= 30
+        self.ob_front_left = obstacle_area[0:obs_dis, 0:obs_dis].sum()
+        self.ob_front = obstacle_area[0:obs_dis, obs_dis:-obs_dis].sum()
+        self.ob_front_right = obstacle_area[0:obs_dis, -obs_dis:-1].sum()
         # # left and right are blocked, can not well detect obstacle
-        self.ob_left = obstacle_area[self.obstacle_distance:-1, 0:self.obstacle_distance].sum()
-        self.ob_right = obstacle_area[self.obstacle_distance:-1, -self.obstacle_distance:-1].sum()
+        self.ob_left = obstacle_area[obs_dis:-1, 0:obs_dis].sum()
+        self.ob_right = obstacle_area[obs_dis:-1, -obs_dis:-1].sum()
         if is_shown:
             print("Front_Left:%i, Front:%i, Front_Right:%i, Left:%i, Right:%i"%
                   (self.ob_front_left,self.ob_front,self.ob_front_right,self.ob_left,self.ob_right))
@@ -295,7 +294,7 @@ class LiDAR_YDLIDAR:
         return self.leg_img
 
 if __name__ == "__main__":
-    lidar = LiDAR_YDLIDAR(text_show=False)
+    lidar = LiDAR_YDLIDAR(text_show=True)
     # just for checking the LiDAR
     # lidar_instance = LiDAR(is_zmq=False)
     # lidar_instance.python_scan(is_show=True)
