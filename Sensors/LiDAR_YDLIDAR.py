@@ -165,6 +165,7 @@ class LiDAR_YDLIDAR:
         rear_left_wheel_col_idx-rear_wheel_width:rear_left_wheel_col_idx+rear_wheel_width
         ] = 0
 
+        print(rear_wheel_row_idx-WALKER_REAR_WHEEL_DIAMETER, rear_wheel_row_idx+WALKER_REAR_WHEEL_DIAMETER)
         self.leg_img[
         rear_wheel_row_idx-WALKER_REAR_WHEEL_DIAMETER:rear_wheel_row_idx+WALKER_REAR_WHEEL_DIAMETER,
         rear_right_wheel_col_idx-rear_wheel_width:rear_right_wheel_col_idx+rear_wheel_width
