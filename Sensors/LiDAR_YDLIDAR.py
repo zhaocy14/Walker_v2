@@ -52,8 +52,6 @@ class LiDAR_YDLIDAR:
         self.walker_lb = WALKER_LEFT_BOUNDARY
         self.walker_rb = WALKER_RIGHT_BOUNDARY
         self.walker_box = WALKER_BOX_BOUNDARY_VERTICAL
-        self.rear_wheel_pos = WALKER_REAR_WHEEL
-        self.rear_wheel_siz = WALKER_REAR_WHEEL_SIZE
 
         self.leg_img = np.zeros((self.walker_tb + self.walker_bb,
                                  self.walker_lb + self.walker_rb))
@@ -157,18 +155,18 @@ class LiDAR_YDLIDAR:
         # then you need to filter out the rear wheel area
         # actually, most of the time the leg will block the rear wheel
         # but when there's no user, the lidar will detect it
-        rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
+        rear_wheel_row_idx = self.walker_tb + WALKER_REAR_WHEEL_ROW_IDX
         rear_left_wheel_col_idx = WALKER_REAR_WHEEL_COL_IDX
         rear_right_wheel_col_idx = -WALKER_REAR_WHEEL_COL_IDX
         rear_wheel_width = WALKER_REAR_WHEEL_WIDTH
 
         self.leg_img[
-        rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
+        rear_wheel_row_idx-WALKER_REAR_WHEEL_DIAMETER:rear_wheel_row_idx+WALKER_REAR_WHEEL_DIAMETER,
         rear_left_wheel_col_idx-rear_wheel_width:rear_left_wheel_col_idx+rear_wheel_width
         ] = 0
 
         self.leg_img[
-        rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
+        rear_wheel_row_idx-WALKER_REAR_WHEEL_DIAMETER:rear_wheel_row_idx+WALKER_REAR_WHEEL_DIAMETER,
         rear_right_wheel_col_idx-rear_wheel_width:rear_right_wheel_col_idx+rear_wheel_width
         ] = 0
 
