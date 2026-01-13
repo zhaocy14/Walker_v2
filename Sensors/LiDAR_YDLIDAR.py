@@ -256,15 +256,15 @@ class LiDAR_YDLIDAR:
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
+                        # self.detect_obstacle(True)
+                        # to save the image every certain scans
                         if scan_time_for_save > self.save_freq:
                             scan_time_for_save = 0
                             self.turn_to_img(temp_list, is_save=is_save_lidar)
-                            # self.detect_obstacle(True)
                             self.detect_leg(self.kmeans, is_save=is_save_leg)
                         else:
-                            self.turn_to_img(temp_list, is_save=is_save_lidar)
-                            # self.detect_obstacle(True)
-                            self.detect_leg(self.kmeans, is_save=is_save_leg)
+                            self.turn_to_img(temp_list, is_save=False)
+                            self.detect_leg(self.kmeans, is_save=False)
 
                         if self.text_show:
                             print("left leg idx:", self.left_leg, "right leg idx:", self.right_leg)
