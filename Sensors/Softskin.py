@@ -41,7 +41,7 @@ class SoftSkin(object):
         self.pressed_threshold_low = 1000  # to test a normal gentle grab
         self.pressed_threshold_high = 12900
 
-        self.emergency_threshold = [10000, 9500, 10000]  # huge force
+        self.emergency_threshold = [10000, 9000, 10000]  # huge force
 
         self.convert_table = np.zeros((2, 14))
         self.initialize_table()
@@ -98,6 +98,9 @@ class SoftSkin(object):
             if self.is_show:
                 print(self.voltage_data)
             self.data_process()
+            if self.is_abnormal:
+                print("Softskin abnormal detected!", self.pressure_data)
+                time.sleep(3)
 
     def unlock(self, unlock_time: int = 1):
         record_time = 0  # to record how long does the sensor are
