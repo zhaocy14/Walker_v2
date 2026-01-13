@@ -159,9 +159,9 @@ class LiDAR_YDLIDAR:
         # but when there's no user, the lidar will detect it
         rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
 
-        rear_left_wheel_col_idx = 90
-        rear_right_wheel_col_idx = -90
-        rear_wheel_width = 45
+        rear_left_wheel_col_idx = 100
+        rear_right_wheel_col_idx = -100
+        rear_wheel_width = 80
 
         self.leg_img[
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
