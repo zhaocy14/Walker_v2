@@ -179,6 +179,7 @@ class LiDAR_YDLIDAR:
             kmeans.fit(sample)
             center_1 = np.around(kmeans.cluster_centers_[0]).astype(int)
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
+            print(center_1, center_2)
             if self.cv_show or is_save:
                 # to show the leg position in the image
                 self.leg_img[center_1[0] - 3: center_1[0] + 3, center_1[1] - 3:center_1[1] + 3] = 1
