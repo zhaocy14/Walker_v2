@@ -177,9 +177,6 @@ class LiDAR_YDLIDAR:
             kmeans.fit(sample)
             center_1 = np.around(kmeans.cluster_centers_[0]).astype(int)
             center_2 = np.around(kmeans.cluster_centers_[1]).astype(int)
-            print(center_1, center_2)
-            print(self.leg_img.shape[1] - max(center_1[1], center_2[1]))
-            print(rear_wheel_row_idx)
             if self.cv_show or is_save:
                 # to show the leg position in the image
                 self.leg_img[center_1[0] - 3: center_1[0] + 3, center_1[1] - 3:center_1[1] + 3] = 1
@@ -214,7 +211,7 @@ class LiDAR_YDLIDAR:
                 self.left_leg = self.center_point - center_2
                 self.right_leg = self.center_point - center_1
         else:
-            infinite_far = np.array([-180, -180])
+            infinite_far = np.array([-INFINITE_FAR, -INFINITE_FAR])
             self.left_leg = infinite_far
             self.right_leg = infinite_far
         return self.left_leg, self.right_leg

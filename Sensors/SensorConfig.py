@@ -59,7 +59,7 @@ WALKER_REAR_WHEEL_COL_IDX = int(0.09 * SCAN_UNIT)
 WALKER_REAR_WHEEL_RADIUS = int(0.02 * SCAN_UNIT)
 WALKER_REAR_WHEEL_WIDTH = int(0.01 * SCAN_UNIT)
 
-
+INFINITE_FAR = int(3 * SCAN_UNIT)  # represent infinite far distance in LiDAR data
 # LiDAR center point
 HUMAN_TO_LIDAR = int(0.5 * SCAN_UNIT) # human operating height to LiDAR center
 
