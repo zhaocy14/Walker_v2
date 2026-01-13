@@ -52,6 +52,9 @@ class LiDAR_YDLIDAR:
         self.walker_lb = WALKER_LEFT_BOUNDARY
         self.walker_rb = WALKER_RIGHT_BOUNDARY
         self.walker_box = WALKER_BOX_BOUNDARY_VERTICAL
+        self.rear_wheel_pos = WALKER_REAR_WHEEL
+        self.rear_wheel_siz = WALKER_REAR_WHEEL_SIZE
+
         self.leg_img = np.zeros((self.walker_tb + self.walker_bb,
                                  self.walker_lb + self.walker_rb))
         # center point is the geometry center of the walker
@@ -150,6 +153,13 @@ class LiDAR_YDLIDAR:
         # basic idea is simply removing the box related rows
         # as you don't need to count the points outside the walker boundary right?
         self.leg_img[0:self.walker_tb + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
+        # then you need to filter out the rear wheel area
+        # actually, most of the time the leg will block the rear wheel
+        # but when there's no user, the lidar will detect it
+        rear_wheel_row_idx = self.walker_tb + self.rear_wheel_pos
+        rear_left_wheel_col_idx = 0 #TODO:need to consider
+        rear_right_wheel_col_idx = -1
+        # self.leg_img[rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz, ]
 
         if self.leg_img.sum() >= 2:
             index = np.where(self.leg_img == 1)
