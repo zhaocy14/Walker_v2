@@ -36,10 +36,12 @@ class SoftSkin(object):
         # detect abnormal signal
         self.max_pressure = 0
         self.is_abnormal = False
+
         # some threshold
         self.pressed_threshold_low = 1000  # to test a normal gentle grab
         self.pressed_threshold_high = 12900
-        self.emergency_threshold = 13800  # huge force
+
+        self.emergency_threshold = [10000, 9500, 10000]  # huge force
 
         self.convert_table = np.zeros((2, 14))
         self.initialize_table()
@@ -58,36 +60,22 @@ class SoftSkin(object):
         self.convert_table[1, :] = np.array(SKIN_TABLE_PRESSURE)
 
     def data_process(self):
-        """process the voltage data"""
-        """first convert the voltage data to force data"""
-        """detect whether there is an abnormal max pressure"""
+        """convert the voltage data to pressure data"""
+        # TODO: to be done in the future
         self.pressure_data = self.voltage_data
-        self.pressure_data[0] = self.voltage_data[0]*2
-        # if self.pressure_data[0] > 4700 or self.pressure_data.max() > 7000:
-        #     if self.pressure_data.max() == self.pressure_data[2]:
-        #         if self.pressure_data[2] > 9800:
-        #             self.is_abnormal = True
-        #     else:
-        #         self.is_abnormal = True
-        if self.pressure_data.max() > 9000:
+        # to detect whether one sensor is abnormal among the three sensors
+        bool_list = []
+        for i in range(self.sensor_num):
+            if self.pressure_data[i] > self.emergency_threshold[i]:
+                bool_list.append(True)
+            else:
+                bool_list.append(False)
+        if True in bool_list:
             self.is_abnormal = True
         else:
             self.is_abnormal = False
-        # self.max_pressure = self.pressure_data.max()
-        # # if self.pressure_data.max() > self.max_pressure:
-        # #     self.max_pressure = self.pressure_data.max()
-        # #     print(self.max_pressure)
-        # if self.max_pressure > self.pressed_threshold_low:
-        #     self.is_pressed = True
-        # else:
-        #     self.is_pressed = False
-        # if self.max_pressure > self.emergency_threshold:
-        #     self.is_abnormal = True
-        # else:
-        #     self.is_abnormal = False
 
     def softskin_main_thread(self):
-        # try:
         self.serial.flush()
         while True:
             # the data would have 20 bytes starting with ff 00 00
@@ -110,10 +98,6 @@ class SoftSkin(object):
             if self.is_show:
                 print(self.voltage_data)
             self.data_process()
-            # print(self.pressure_data, self.pressure_data[0]-self.pressure_data[2])
-
-    # except BaseException as be:
-    #     print("Data Error:", be)
 
     def unlock(self, unlock_time: int = 1):
         record_time = 0  # to record how long does the sensor are
@@ -133,16 +117,3 @@ class SoftSkin(object):
 if __name__ == '__main__':
 
     skin = SoftSkin(is_show=True)
-    # while True:
-    #     # time.sleep(0.1)
-    #     if skin.is_abnormal:
-    #         print("yes")
-    #         time.sleep(0.1)
-            # skin.unlock()
-    # test
-    # se = serial.Serial('/dev/ttyS3', 115200, timeout=None)
-    # time.sleep(2)
-    #
-    # while True:
-    #     print(se.read(1))
-    #     time.sleep(0.2)
