@@ -98,8 +98,8 @@ class DriverAgent(object):
         disable both drivers
         :return:
         """
-        self.driver_serial.set_motor_enable(enable=False, motor='left')
-        self.driver_serial.set_motor_enable(enable=False, motor='right')
+        self.driver_serial.set_motor_enable(enable=enable, motor='left')
+        self.driver_serial.set_motor_enable(enable=enable, motor='right')
 
     def main_control(self):
         """
