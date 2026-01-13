@@ -101,8 +101,8 @@ class LiDAR_YDLIDAR:
     def turn_to_img(self, original_list: list, is_save:bool=False) -> None:
         """
         turn the scan list to an image
+        :param is_save: whether to save the image
         :param original_list: a list of the [angle, distance, quality]
-        :is_save: whether to save the image
         """
         self.scan_img[:] = 0
         for i in range(len(original_list)):
@@ -118,7 +118,7 @@ class LiDAR_YDLIDAR:
         if is_save:
             start_time = time.time()
             im = np.copy(self.scan_img)
-            im[self.half_size - 3:self.half_size + 3, self.half_size - 3:self.half_size + 3] = 1
+            im[self.half_size - 5:self.half_size + 5, self.half_size - 5:self.half_size + 5] = 1
             # 保存图像，确保图像格式正确（这里将二值图转换为RGB以便正常保存）
             save_img = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
             # 储存到根部目录下的log下的lidar文件夹中
@@ -161,7 +161,7 @@ class LiDAR_YDLIDAR:
 
         rear_left_wheel_col_idx = 10
         rear_right_wheel_col_idx = -10
-        rear_wheel_width = 5
+        rear_wheel_width = 7
 
         self.leg_img[
         rear_wheel_row_idx-self.rear_wheel_siz:rear_wheel_row_idx+self.rear_wheel_siz,
@@ -184,10 +184,9 @@ class LiDAR_YDLIDAR:
                 # to show the leg position in the image
                 self.leg_img[center_1[0] - 5: center_1[0] + 5, center_1[1] - 5:center_1[1] + 5] = 1
                 self.leg_img[center_2[0] - 5:center_2[0] + 5, center_2[1] - 5:center_2[1] + 5] = 1
-                # to show the LiDAR point in the image
-                self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
-                self.walker_lb - 1:self.walker_lb + 1] = 1
-                # im_show = im + img
+                # # to show the LiDAR point in the image
+                # self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
+                # self.walker_lb - 1:self.walker_lb + 1] = 0
                 im_show = self.leg_img
                 if self.cv_show:
                     # transform to Image to change the size of the print image
@@ -243,6 +242,8 @@ class LiDAR_YDLIDAR:
     def scan(self):
         try_times = 0
         scan_time_for_save = 0
+        is_save_lidar = False   # whether save the whole img
+        is_save_leg = True      # whether save the leg scanning area
         while True:
             try:
                 self.lidar_process_event.wait()
@@ -257,16 +258,16 @@ class LiDAR_YDLIDAR:
                         self.scan_raw_data = np.array(temp_list)
                         if scan_time_for_save > self.save_freq:
                             scan_time_for_save = 0
-                            self.turn_to_img(temp_list, is_save=True)
+                            self.turn_to_img(temp_list, is_save=is_save_lidar)
                             # self.detect_obstacle(True)
-                            self.detect_leg(self.kmeans, is_save=True)
+                            self.detect_leg(self.kmeans, is_save=is_save_leg)
                         else:
-                            self.turn_to_img(temp_list, is_save=False)
+                            self.turn_to_img(temp_list, is_save=is_save_lidar)
                             # self.detect_obstacle(True)
-                            self.detect_leg(self.kmeans, is_save=False)
+                            self.detect_leg(self.kmeans, is_save=is_save_leg)
 
                         if self.text_show:
-                            print(self.left_leg,self.right_leg)
+                            print("left leg idx:", self.left_leg, "right leg idx:", self.right_leg)
 
                     else:
                         print("获取数据失败")
