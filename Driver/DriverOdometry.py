@@ -1,9 +1,6 @@
 import time
 import math
 
-from anyio import current_time
-
-
 class Odometry:
     def __init__(self, X=0.0, Y=0.0, THETA=0.0, Odo_l=0, Odo_r=0,
                  tick_threshold=0):
