@@ -166,9 +166,9 @@ class DriversSerial(object):
         #     cond = 256 # sharp stop
         # self.set_motor_cond(motor=motor, cond=cond)
         if rpm > 0:
-            self.set_motor_direction(direction=0, motor=motor)
-        elif rpm < 0:
             self.set_motor_direction(direction=1, motor=motor)
+        elif rpm < 0:
+            self.set_motor_direction(direction=0, motor=motor)
 
         # speed must be positive value
         rpm = abs(rpm)
