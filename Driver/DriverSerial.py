@@ -140,21 +140,15 @@ class DriversSerial(object):
         else:
             adjusted_rpm = rpm  # 左电机沿用原方向
 
-        # 3. 速度值域校验（手册0x009A支持0~10000转/分）
-        abs_adjusted_rpm = abs(adjusted_rpm)
-        if abs_adjusted_rpm > 10000:
-            print(f"速度超出手册限制（0~10000转/分），已自动截断为10000")
-            abs_adjusted_rpm = 10000
-
         # 4. 方向与启停指令映射（基于调整后的速度）
         if adjusted_rpm > 0:
-            direction = 0  # 正转（对应set_motor_direction的0）
+            direction = 1  # 正转（对应set_motor_direction的0）
             start_cond = 1  # 正转启动（对应set_motor_cond的1）
         elif adjusted_rpm < 0:
-            direction = 1  # 反转（对应set_motor_direction的1）
+            direction = 0  # 反转（对应set_motor_direction的1）
             start_cond = 257  # 反转启动（对应set_motor_cond的257）
         else:
-            direction = 0  # 速度为0时，方向默认正转
+            direction = 1  # 速度为0时，方向默认正转
             start_cond = 0  # 减速停止（对应set_motor_cond的0）
 
         # 5. 高频切换安全逻辑：非0速切换方向时，先停止电机
