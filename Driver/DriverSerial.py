@@ -137,6 +137,12 @@ class DriversSerial(object):
             print("电机选择错误，只能选择'left'或'right'，已退出设置速度")
             return
 
+        if pre_rpm == 0 and rpm != 0:
+            if rpm > 0:
+                cond = 1  # forward
+            elif rpm < 0:
+                cond = 257 # backward
+            self.set_motor_cond(motor=motor, cond=cond)
         # if rpm * pre_rpm < 0:
         #     # if the target speed and the current speed have different signs
         #     # set the condition to stop first
