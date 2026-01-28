@@ -122,7 +122,7 @@ class DriverAgent(object):
 
 
 if __name__ == "__main__":
-    driver_ins = DriverAgent(disable_mode=True)
+    driver_ins = DriverAgent(disable_mode=False)
     driver_ins.__version__()
     driver_ins.update_control_params(speed=0.5, omega=0,radius=0)
     time.sleep(3)
