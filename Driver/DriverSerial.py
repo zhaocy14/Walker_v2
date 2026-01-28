@@ -140,6 +140,9 @@ class DriversSerial(object):
         else:
             adjusted_rpm = rpm  # 左电机沿用原方向
 
+        # 3. 速度值域校验（手册0x009A支持0~10000转/分）
+        abs_adjusted_rpm = abs(adjusted_rpm)
+
         # 4. 方向与启停指令映射（基于调整后的速度）
         if adjusted_rpm > 0:
             direction = 1  # 正转（对应set_motor_direction的0）
