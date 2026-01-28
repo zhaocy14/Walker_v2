@@ -149,22 +149,20 @@ class DriversSerial(object):
         elif motor == 'right':
             self.r_rpm = rpm
         # set the new rpm to motor
-        # # first set turn forward/slow down/backward/sharp stop
-        # if rpm > 0:
-        #     cond = 1  # forward
-        # elif rpm == 0:
-        #     cond = 0  # slow down
-        # elif rpm < 0:
-        #     cond = 257 # backward
-        # else:
-        #     cond = 256 # sharp stop
-        # self.set_motor_cond(motor=motor, cond=cond)
+        # first set turn forward/slow down/backward/sharp stop
+        if rpm > 0:
+            cond = 1  # forward
+        elif rpm == 0:
+            cond = 0  # slow down
+        elif rpm < 0:
+            cond = 257 # backward
+        else:
+            cond = 256 # sharp stop
+        self.set_motor_cond(motor=motor, cond=cond)
         if rpm > 0:
             self.set_motor_direction(direction=0, motor=motor)
         elif rpm < 0:
             self.set_motor_direction(direction=1, motor=motor)
-        else:
-            self.set_motor_cond(motor=motor, cond=0) # slow down
 
         # speed must be positive value
         rpm = abs(rpm)
