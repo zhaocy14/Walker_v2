@@ -136,7 +136,7 @@ class DriversSerial(object):
             return
 
         if rpm*cur_rpm < 0:
-            print("reverse!")
+            print(f"{motor} reverse!")
             # if the target speed and the current speed have different signs
             # set the condition to stop first
             self.set_motor_cond(motor=motor, cond=0)
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     # # #
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(2)
-    position = driver.get_driver_position()
-    speed = driver.get_motor_speed()
-    print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
+    time.sleep(1)
+
+    driver.set_motor_enable(enable=False, motor='left')
+    driver.set_motor_enable(enable=False, motor='right')
