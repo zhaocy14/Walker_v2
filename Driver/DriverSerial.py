@@ -178,7 +178,7 @@ class DriversSerial(object):
         if motor not in ['left', 'right']:
             print("电机选择错误，只能选择'left'或'right'，已退出设置电机方向")
             return
-        self._write_register(address=0x00c8, value=direction, action="设置电机方向", motor=motor)
+        self._write_register(address=0x006b, value=direction, action="设置电机方向", motor=motor)
 
     def set_motor_cond(self, motor:str, cond:int = 0):
         """
