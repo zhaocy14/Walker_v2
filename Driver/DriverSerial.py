@@ -1,5 +1,5 @@
 import os,sys
-
+import time
 from PIL.SpiderImagePlugin import iforms
 
 pwd = os.path.abspath(os.path.abspath(__file__))
@@ -303,7 +303,6 @@ class DriversSerial(object):
 
 
 if __name__ == "__main__":
-    import time
     driver = DriversSerial(port_key='/dev/ttyS6')
     # a loop for reading and logging driver's position, speed
 
