@@ -137,11 +137,11 @@ class DriversSerial(object):
             print("电机选择错误，只能选择'left'或'right'，已退出设置速度")
             return
 
-        if rpm * pre_rpm < 0:
-            # if the target speed and the current speed have different signs
-            # set the condition to stop first
-            self.set_motor_cond(motor=motor, cond=0)
-            time.sleep(0.1)
+        # if rpm * pre_rpm < 0:
+        #     # if the target speed and the current speed have different signs
+        #     # set the condition to stop first
+        #     self.set_motor_cond(motor=motor, cond=0)
+        #     time.sleep(0.1)
 
         # update the new rpm
         if motor == 'left':
@@ -149,20 +149,38 @@ class DriversSerial(object):
         elif motor == 'right':
             self.r_rpm = rpm
         # set the new rpm to motor
-        # first set turn forward/slow down/backward/sharp stop
+        # # first set turn forward/slow down/backward/sharp stop
+        # if rpm > 0:
+        #     cond = 1  # forward
+        # elif rpm == 0:
+        #     cond = 0  # slow down
+        # elif rpm < 0:
+        #     cond = 257 # backward
+        # else:
+        #     cond = 256 # sharp stop
+        # self.set_motor_cond(motor=motor, cond=cond)
         if rpm > 0:
-            cond = 1  # forward
-        elif rpm == 0:
-            cond = 0  # slow down
+            self.set_motor_direction(direction=0, motor=motor)
         elif rpm < 0:
-            cond = 257 # backward
+            self.set_motor_direction(direction=1, motor=motor)
         else:
-            cond = 256 # sharp stop
-        print(f"Setting {motor} motor condition: {cond}")
-        self.set_motor_cond(motor=motor, cond=cond)
+            self.set_motor_cond(motor=motor, cond=0) # slow down
+
         # speed must be positive value
         rpm = abs(rpm)
         self._write_register(address=0x009a, value=rpm, action="设置电机速度", motor=motor)
+
+    def set_motor_direction(self, direction:int, motor:str):
+        """
+        Set the direction of the motor.
+        :param direction: 0 for forward; 1 for backward
+        :param motor: str, left or right
+        :return: None
+        """
+        if motor not in ['left', 'right']:
+            print("电机选择错误，只能选择'left'或'right'，已退出设置电机方向")
+            return
+        self._write_register(address=0x00c8, value=direction, action="设置电机方向", motor=motor)
 
     def set_motor_cond(self, motor:str, cond:int = 0):
         """
