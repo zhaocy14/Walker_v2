@@ -87,12 +87,12 @@ class DriverAgent(object):
         set the wheel speed to the driver
         :return:
         """
-        left_rpm = -int(self._left_spd / (2 * 3.14 * self.wheel_radius) * 60)
+        left_rpm = -int(self._left_spd / (2 * 3.14159 * self.wheel_radius) * 60)
         self.driver_serial.set_single_driver_speed(rpm=left_rpm, motor='left')
-        right_rpm = int(self._right_spd / (2 * 3.14 * self.wheel_radius) * 60)
+        right_rpm = int(self._right_spd / (2 * 3.14159 * self.wheel_radius) * 60)
         self.driver_serial.set_single_driver_speed(rpm=right_rpm, motor='right')
 
-    def enable_driver(self, enable: bool = True):
+    def enable_driver(self, enable: bool = False):
         """
         disable both drivers
         :return:
@@ -122,10 +122,10 @@ class DriverAgent(object):
 
 
 if __name__ == "__main__":
-    driver_ins = DriverAgent(disable_mode=False)
+    driver_ins = DriverAgent(disable_mode=True)
     driver_ins.__version__()
     driver_ins.update_control_params(speed=0.5, omega=0,radius=0)
-    time.sleep(5)
+    time.sleep(3)
     driver_ins.update_control_params(speed=0, omega=0.0, radius=0)
     time.sleep(2)
     driver_ins.enable_driver(False)
