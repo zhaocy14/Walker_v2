@@ -137,7 +137,7 @@ class DriversSerial(object):
             print("电机选择错误，只能选择'left'或'right'，已退出设置速度")
             return
 
-        if rpm * pre_rpm <= 0:
+        if rpm * pre_rpm < 0:
             # if the target speed and the current speed have different signs
             # set the condition to stop first
             self.set_motor_cond(motor=motor, cond=0)
@@ -281,20 +281,20 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(2)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
-    driver.set_single_driver_speed(rpm=0, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(1)
+    # driver.set_single_driver_speed(rpm=0, motor='left')
+    # driver.set_single_driver_speed(rpm=0, motor='right')
+    # time.sleep(1)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
     driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
     # # #
-    driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(3)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
 
