@@ -157,7 +157,6 @@ class DriversSerial(object):
         # 5. 高频切换安全逻辑：非0速切换方向时，先停止电机
         pre_rpm = self.l_rpm if motor == 'left' else self.r_rpm
         if pre_rpm != 0 and (adjusted_rpm * pre_rpm < 0):
-            print(f"{motor}电机正反转切换，先减速停止...")
             self.set_motor_cond(motor=motor, cond=0)  # 调用指定函数停止
             time.sleep(0.1)  # 确保电机停稳，避免堵转
 
@@ -309,14 +308,14 @@ if __name__ == "__main__":
 
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
-    driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
     time.sleep(3)
     #
-    driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(2)
     #
