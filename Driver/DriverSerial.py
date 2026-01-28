@@ -20,11 +20,13 @@ class DriversSerial(object):
 
         # motor information
         self.l_pos = 0 # left motor position
-        self.l_rpm = 0 # left motor speed(rpm)
+        self.l_rpm = 0 # left motor speed(rpm), for setting
+        self.l_record_rpm = 0 # recorded rpm by reading
         self.l_enable = False # left motor enable status
 
         self.r_pos = 0 # right motor position
         self.r_rpm = 0 # right motor speed(rpm)
+        self.r_record_rpm = 0 # recorded rpm by reading
         self.r_enable = False # right motor enable status
 
         self.left_device_id = 0x01
@@ -116,9 +118,9 @@ class DriversSerial(object):
         """
         l_regs = self._read_register(address=0x0019, count=1, action="读取左电机速度", motor='left')
         r_regs = self._read_register(address=0x0019, count=1, action="读取右电机速度", motor='right')
-        self.l_rpm = l_regs[0] if l_regs is not None else 0
-        self.r_rpm = r_regs[0] if r_regs is not None else 0
-        return self.l_rpm, self.r_rpm
+        self.l_record_rpm = l_regs[0] if l_regs is not None else 0
+        self.r_record_rpm = r_regs[0] if r_regs is not None else 0
+        return self.l_record_rpm, self.r_record_rpm
 
     def set_single_driver_speed(self, rpm, motor:str):
         """
@@ -280,7 +282,7 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
-    time.sleep(0.1)
+    time.sleep(5)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
