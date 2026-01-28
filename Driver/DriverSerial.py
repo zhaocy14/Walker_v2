@@ -280,7 +280,7 @@ if __name__ == "__main__":
     print(f"电机当前绝对位置: {position}, 当前速度: {speed}")
 
 
-    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(3)
     # # #
