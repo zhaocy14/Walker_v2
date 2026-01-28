@@ -142,7 +142,7 @@ class DriversSerial(object):
             # set the condition to stop first
             print(f"{motor} motor changing direction, stopping first.")
             self.set_motor_cond(motor=motor, cond=0)
-            # time.sleep(0.1)
+            time.sleep(0.1)
 
         # update the new rpm
         if motor == 'left':
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
