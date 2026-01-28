@@ -149,7 +149,6 @@ class DriversSerial(object):
             self.l_rpm = rpm
         elif motor == 'right':
             self.r_rpm = rpm
-        print(f"{motor} previous rpm:{pre_rpm}; current rpm:{rpm}")
         # set the new rpm to motor
         # first set turn forward/slow down/backward/sharp stop
         if rpm > 0:
@@ -160,6 +159,7 @@ class DriversSerial(object):
             cond = 257 # backward
         else:
             cond = 256 # sharp stop
+        print(f"Setting {motor} motor condition: {cond}")
         self.set_motor_cond(motor=motor, cond=cond)
         # speed must be positive value
         rpm = abs(rpm)
@@ -284,20 +284,18 @@ if __name__ == "__main__":
     driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
-    print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
     # driver.set_single_driver_speed(rpm=0, motor='left')
     # driver.set_single_driver_speed(rpm=0, motor='right')
     # time.sleep(1)
-    print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
+
     driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
-    print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
+
     # # #
     driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
-    print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
 
     driver.set_motor_enable(enable=False, motor='left')
     driver.set_motor_enable(enable=False, motor='right')
