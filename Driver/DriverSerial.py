@@ -135,7 +135,7 @@ class DriversSerial(object):
             return
 
         # 2. 对称电机方向自动处理：右电机速度取反（核心适配逻辑）
-        if motor == 'right':
+        if motor == 'left':
             adjusted_rpm = -rpm  # 右电机反转，适配对称放置
         else:
             adjusted_rpm = rpm  # 左电机沿用原方向
@@ -173,7 +173,7 @@ class DriversSerial(object):
         # print(start_cond, direction)
 
         # 6.1 调用指定函数设置方向（0x006B）
-        # self.set_motor_direction(direction=direction, motor=motor)
+        self.set_motor_direction(direction=direction, motor=motor)
 
         # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     driver.set_single_driver_speed(rpm=0, motor='right')
     time.sleep(2)
 
-    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(2)
     #
