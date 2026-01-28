@@ -286,11 +286,11 @@ if __name__ == "__main__":
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(1)
+    time.sleep(0.1)
 
     driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
-    time.sleep(1)
+    time.sleep(2)
 
     # # #
     driver.set_single_driver_speed(rpm=-30, motor='left')
