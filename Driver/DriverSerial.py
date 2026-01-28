@@ -140,7 +140,6 @@ class DriversSerial(object):
         if rpm * pre_rpm < 0:
             # if the target speed and the current speed have different signs
             # set the condition to stop first
-            print(f"{motor} motor changing direction, stopping first.")
             self.set_motor_cond(motor=motor, cond=0)
             time.sleep(0.1)
 
@@ -281,19 +280,19 @@ if __name__ == "__main__":
 
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
-    # driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
-    # driver.set_single_driver_speed(rpm=0, motor='left')
+    driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
     time.sleep(0.5)
 
-    # driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(2)
 
     # # #
-    # driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
 
