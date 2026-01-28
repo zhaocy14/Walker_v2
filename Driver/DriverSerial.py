@@ -282,7 +282,7 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
-    time.sleep(2)
+    time.sleep(1)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
     # driver.set_single_driver_speed(rpm=0, motor='left')
     # driver.set_single_driver_speed(rpm=0, motor='right')
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     # # #
     driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
-    time.sleep(3)
+    time.sleep(1)
     print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
 
     driver.set_motor_enable(enable=False, motor='left')
