@@ -268,9 +268,9 @@ if __name__ == "__main__":
     import time
     driver = DriversSerial(port_key='/dev/ttyS6')
     # a loop for reading and logging driver's position, speed
-    # driver.set_motor_enable(enable=False, motor='left')
-    # driver.set_motor_enable(enable=False, motor='right')
-    #
+
+    driver.set_motor_enable(enable=True, motor='left')
+    driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=10, motor='left')
     driver.set_single_driver_speed(rpm=-10, motor='right')
     time.sleep(3)
