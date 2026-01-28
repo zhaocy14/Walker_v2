@@ -281,8 +281,8 @@ if __name__ == "__main__":
 
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
-    driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
@@ -293,8 +293,8 @@ if __name__ == "__main__":
     time.sleep(2)
 
     # # #
-    driver.set_single_driver_speed(rpm=-30, motor='left')
-    driver.set_single_driver_speed(rpm=30, motor='right')
+    driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(1)
 
     driver.set_motor_enable(enable=False, motor='left')
