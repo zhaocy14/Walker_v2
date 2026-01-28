@@ -151,7 +151,7 @@ class DriversSerial(object):
             direction = 1  # 反转（对应set_motor_direction的1）
             start_cond = 257  # 反转启动（对应set_motor_cond的257）
         else:
-            direction = 1  # 速度为0时，方向默认正转
+            direction = 0  # 速度为0时，方向默认正转
             start_cond = 0  # 减速停止（对应set_motor_cond的0）
 
         # 5. 高频切换安全逻辑：非0速切换方向时，先停止电机
@@ -169,11 +169,11 @@ class DriversSerial(object):
             action=f"{motor}电机速度设置（{abs_adjusted_rpm}转/分）",
             motor=motor
         )
-        print(start_cond, direction)
+        # print(start_cond, direction)
         # 6.3 调用指定函数启动/停止（0x00C8）
-        self.set_motor_cond(motor=motor, cond=start_cond)
+        # self.set_motor_cond(motor=motor, cond=start_cond)
         # 6.1 调用指定函数设置方向（0x006B）
-        # self.set_motor_direction(direction=direction, motor=motor)
+        self.set_motor_direction(direction=direction, motor=motor)
 
         # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
@@ -309,7 +309,7 @@ if __name__ == "__main__":
 
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
-    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
