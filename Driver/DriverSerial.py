@@ -122,57 +122,66 @@ class DriversSerial(object):
         self.r_record_rpm = r_regs[0] if r_regs is not None else 0
         return self.l_record_rpm, self.r_record_rpm
 
-    def set_single_driver_speed(self, rpm, motor:str):
+    def set_single_driver_speed(self, rpm, motor: str):
         """
-        Set the speed of the driver.
-        :param rpm: speed value
-        :param motor: str, left or right
-        :return: None
+        适配对称电机的速度设置：内部自动处理方向反转，外部无需手动调整正负
+        - 左电机（left）：沿用输入rpm的原方向（原正负号）
+        - 右电机（right）：自动取rpm的反方向（原正负号反转）
+        - 其他逻辑完全遵循英鹏飞手册协议
         """
-        if motor == 'left':
-            pre_rpm = self.l_rpm
-        elif motor == 'right':
-            pre_rpm = self.r_rpm
-        else:
-            print("电机选择错误，只能选择'left'或'right'，已退出设置速度")
+        # 1. 前置校验：电机选择+使能状态+速度范围
+        if motor not in ['left', 'right']:
+            print("电机选择错误，仅支持'left'/'right'")
             return
 
-        if pre_rpm == 0 and rpm != 0:
-            if rpm > 0:
-                cond = 1  # forward
-            elif rpm < 0:
-                cond = 257 # backward
-            self.set_motor_cond(motor=motor, cond=cond)
-        # if rpm * pre_rpm < 0:
-        #     # if the target speed and the current speed have different signs
-        #     # set the condition to stop first
-        #     self.set_motor_cond(motor=motor, cond=0)
-        #     time.sleep(0.1)
+        # 2. 对称电机方向自动处理：右电机速度取反（核心适配逻辑）
+        if motor == 'right':
+            adjusted_rpm = -rpm  # 右电机反转，适配对称放置
+        else:
+            adjusted_rpm = rpm  # 左电机沿用原方向
 
-        # update the new rpm
+        # 3. 速度值域校验（手册0x009A支持0~10000转/分）
+        abs_adjusted_rpm = abs(adjusted_rpm)
+        if abs_adjusted_rpm > 10000:
+            print(f"速度超出手册限制（0~10000转/分），已自动截断为10000")
+            abs_adjusted_rpm = 10000
+
+        # 4. 方向与启停指令映射（基于调整后的速度）
+        if adjusted_rpm > 0:
+            direction = 0  # 正转（对应set_motor_direction的0）
+            start_cond = 1  # 正转启动（对应set_motor_cond的1）
+        elif adjusted_rpm < 0:
+            direction = 1  # 反转（对应set_motor_direction的1）
+            start_cond = 257  # 反转启动（对应set_motor_cond的257）
+        else:
+            direction = 0  # 速度为0时，方向默认正转
+            start_cond = 0  # 减速停止（对应set_motor_cond的0）
+
+        # 5. 高频切换安全逻辑：非0速切换方向时，先停止电机
+        pre_rpm = self.l_rpm if motor == 'left' else self.r_rpm
+        if pre_rpm != 0 and (adjusted_rpm * pre_rpm < 0):
+            print(f"{motor}电机正反转切换，先减速停止...")
+            self.set_motor_cond(motor=motor, cond=0)  # 调用指定函数停止
+            time.sleep(0.1)  # 确保电机停稳，避免堵转
+
+        # 6. 按协议顺序执行：设方向 → 设速度 → 设启停
+        # 6.1 调用指定函数设置方向（0x006B）
+        self.set_motor_direction(direction=direction, motor=motor)
+        # 6.2 写入速度（0x009A，手册要求仅支持非负值，传入调整后的绝对值）
+        self._write_register(
+            address=0x009A,
+            value=abs_adjusted_rpm,
+            action=f"{motor}电机速度设置（{abs_adjusted_rpm}转/分）",
+            motor=motor
+        )
+        # 6.3 调用指定函数启动/停止（0x00C8）
+        self.set_motor_cond(motor=motor, cond=start_cond)
+
+        # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
-            self.l_rpm = rpm
-        elif motor == 'right':
-            self.r_rpm = rpm
-        # set the new rpm to motor
-        # first set turn forward/slow down/backward/sharp stop
-        # if rpm > 0:
-        #     cond = 1  # forward
-        # elif rpm == 0:
-        #     cond = 0  # slow down
-        # elif rpm < 0:
-        #     cond = 257 # backward
-        # else:
-        #     cond = 256 # sharp stop
-        # self.set_motor_cond(motor=motor, cond=cond)
-        if rpm > 0:
-            self.set_motor_direction(direction=1, motor=motor)
-        elif rpm < 0:
-            self.set_motor_direction(direction=0, motor=motor)
-
-        # speed must be positive value
-        rpm = abs(rpm)
-        self._write_register(address=0x009a, value=rpm, action="设置电机速度", motor=motor)
+            self.l_rpm = adjusted_rpm
+        else:
+            self.r_rpm = adjusted_rpm
 
     def set_motor_direction(self, direction:int, motor:str):
         """
@@ -303,19 +312,19 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
+    driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
     time.sleep(3)
     #
     driver.set_single_driver_speed(rpm=-30, motor='left')
-    driver.set_single_driver_speed(rpm=30, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(2)
     #
     # # # #
     driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
+    driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(1)
     #
     driver.set_motor_enable(enable=False, motor='left')
