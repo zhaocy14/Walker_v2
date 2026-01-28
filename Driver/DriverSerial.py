@@ -273,7 +273,7 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
     driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=30, motor='right')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(3)
     position = driver.get_driver_position()
     speed = driver.get_motor_speed()
