@@ -161,8 +161,7 @@ class DriversSerial(object):
             time.sleep(0.1)  # 确保电机停稳，避免堵转
 
         # 6. 按协议顺序执行：设方向 → 设速度 → 设启停
-        # 6.3 调用指定函数启动/停止（0x00C8）
-        self.set_motor_cond(motor=motor, cond=start_cond)
+
         # 6.2 写入速度（0x009A，手册要求仅支持非负值，传入调整后的绝对值）
         self._write_register(
             address=0x009A,
@@ -171,9 +170,10 @@ class DriversSerial(object):
             motor=motor
         )
         # print(start_cond, direction)
-
+        # 6.3 调用指定函数启动/停止（0x00C8）
+        self.set_motor_cond(motor=motor, cond=start_cond)
         # 6.1 调用指定函数设置方向（0x006B）
-        self.set_motor_direction(direction=direction, motor=motor)
+        # self.set_motor_direction(direction=direction, motor=motor)
 
         # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
