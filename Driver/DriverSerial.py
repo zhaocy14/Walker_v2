@@ -169,6 +169,7 @@ class DriversSerial(object):
             action=f"{motor}电机速度设置（{abs_adjusted_rpm}转/分）",
             motor=motor
         )
+        print(start_cond, direction)
         # 6.3 调用指定函数启动/停止（0x00C8）
         self.set_motor_cond(motor=motor, cond=start_cond)
         # 6.1 调用指定函数设置方向（0x006B）
