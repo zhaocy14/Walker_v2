@@ -128,20 +128,26 @@ class DriversSerial(object):
         :return: None
         """
         if motor == 'left':
-            cur_rpm = self.l_rpm
+            pre_rpm = self.l_rpm
         elif motor == 'right':
-            cur_rpm = self.r_rpm
+            pre_rpm = self.r_rpm
         else:
             print("电机选择错误，只能选择'left'或'right'，已退出设置速度")
             return
 
-        if rpm*cur_rpm < 0:
-            print(f"{motor} reverse!")
+        if rpm * pre_rpm < 0:
             # if the target speed and the current speed have different signs
             # set the condition to stop first
             self.set_motor_cond(motor=motor, cond=0)
             time.sleep(0.1)
 
+        # update the new rpm
+        if motor == 'left':
+            self.l_rpm = rpm
+        elif motor == 'right':
+            self.r_rpm = rpm
+        print(f"{motor} previous rpm:{pre_rpm}; current rpm:{rpm}")
+        # set the new rpm to motor
         # first set turn forward/slow down/backward/sharp stop
         if rpm > 0:
             cond = 1  # forward
