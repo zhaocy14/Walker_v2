@@ -173,7 +173,7 @@ class DriversSerial(object):
         # 6.3 调用指定函数启动/停止（0x00C8）
         self.set_motor_cond(motor=motor, cond=start_cond)
         # 6.1 调用指定函数设置方向（0x006B）
-        # self.set_motor_direction(direction=direction, motor=motor)
+        self.set_motor_direction(direction=direction, motor=motor)
 
         # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
