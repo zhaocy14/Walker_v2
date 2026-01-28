@@ -145,10 +145,10 @@ class DriversSerial(object):
 
         # 4. 方向与启停指令映射（基于调整后的速度）
         if adjusted_rpm > 0:
-            direction = 1  # 正转（对应set_motor_direction的0）
+            direction = 0  # 正转（对应set_motor_direction的0）
             start_cond = 1  # 正转启动（对应set_motor_cond的1）
         elif adjusted_rpm < 0:
-            direction = 0  # 反转（对应set_motor_direction的1）
+            direction = 1  # 反转（对应set_motor_direction的1）
             start_cond = 257  # 反转启动（对应set_motor_cond的257）
         else:
             direction = 1  # 速度为0时，方向默认正转
@@ -173,7 +173,7 @@ class DriversSerial(object):
         # 6.3 调用指定函数启动/停止（0x00C8）
         self.set_motor_cond(motor=motor, cond=start_cond)
         # 6.1 调用指定函数设置方向（0x006B）
-        self.set_motor_direction(direction=direction, motor=motor)
+        # self.set_motor_direction(direction=direction, motor=motor)
 
         # 7. 更新本地状态缓存（缓存调整后的速度，便于后续切换判断）
         if motor == 'left':
