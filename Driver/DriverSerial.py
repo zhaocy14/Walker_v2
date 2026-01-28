@@ -135,7 +135,7 @@ class DriversSerial(object):
             return
 
         # 2. 对称电机方向自动处理：右电机速度取反（核心适配逻辑）
-        if motor == 'left':
+        if motor == 'right':
             adjusted_rpm = -rpm  # 右电机反转，适配对称放置
         else:
             adjusted_rpm = rpm  # 左电机沿用原方向
