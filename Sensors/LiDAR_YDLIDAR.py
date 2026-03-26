@@ -18,10 +18,10 @@ class LiDAR_YDLIDAR:
         # 初始化雷达
         ydlidar.os_init()
         ports = ydlidar.lidarPortList()
-        port = "/dev/ydlidar"
-        for key, value in ports.items():
-            port = value
-            print(f"使用端口: {port}")
+        port = "/dev/ttyS0"
+        # for key, value in ports.items():
+        #     port = value
+        #     print(f"使用端口: {port}")
         self.lidar = ydlidar.CYdLidar()
         self.lidar.setlidaropt(ydlidar.LidarPropSerialPort, port)
         self.lidar.setlidaropt(ydlidar.LidarPropSerialBaudrate, 115200)
