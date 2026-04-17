@@ -315,6 +315,9 @@ if __name__ == "__main__":
     driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(5)
+    driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='right')
+    time.sleep(5)
 
     # stop:
     driver.set_single_driver_speed(rpm=0, motor='left')
