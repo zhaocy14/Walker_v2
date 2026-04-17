@@ -52,6 +52,7 @@ class FFL(object):
         self.FFLevent.clear()
 
         self.FFLthread = threading.Thread(target=self.main, args=())
+        self.FFLthread.daemon = True
         self.FFLthread.start()
 
     def update_driver(self, speed: float = 0, omega: float = 0, radius: float = 0):
