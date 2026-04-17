@@ -61,6 +61,7 @@ class LiDAR_YDLIDAR:
         self.ob_front_right = 0
         self.ob_left = 0
         self.ob_right = 0
+        self.ob_back = 0
 
         # show & save
         self.text_show = text_show
@@ -215,7 +216,7 @@ class LiDAR_YDLIDAR:
         """
         obs_dis = OBSTACLE_DISTANCE
         obstacle_area = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY - obs_dis:
-                            HALF_SIZE + WALKER_BOTTOM_BOUNDARY,
+                            HALF_SIZE + WALKER_BOTTOM_BOUNDARY + obs_dis,
                         HALF_SIZE - WALKER_LEFT_BOUNDARY - obs_dis:
                         HALF_SIZE + WALKER_RIGHT_BOUNDARY + obs_dis]
         obs_dis -= 30
@@ -225,9 +226,11 @@ class LiDAR_YDLIDAR:
         # # left and right are blocked, can not well detect obstacle
         self.ob_left = obstacle_area[obs_dis:-1, 0:obs_dis].sum()
         self.ob_right = obstacle_area[obs_dis:-1, -obs_dis:-1].sum()
+        # # detect the back area to avoid crash the back
+        self.ob_back = obstacle_area[-obs_dis:-1, :].sum()
         if is_shown:
-            print("Front_Left:%i, Front:%i, Front_Right:%i, Left:%i, Right:%i"%
-                  (self.ob_front_left,self.ob_front,self.ob_front_right,self.ob_left,self.ob_right))
+            print("Front_Left:%i, Front:%i, Front_Right:%i, Left:%i, Right:%i, Back:%i"%
+                  (self.ob_front_left,self.ob_front,self.ob_front_right,self.ob_left,self.ob_right, self.ob_back))
 
     def scan(self):
         try_times = 0

@@ -20,7 +20,7 @@ class DriverAgent(object):
         # hardware parameters
         self.version = 2.1  # driver version
         self.driver_serial = DriversSerial(port_key='/dev/ttyS6')   # serial port for both drivers
-        self.wheel_radius = 0.18 # wheel radius (m)
+        self.wheel_radius = 0.09 # wheel radius (m)
         self.wheel_dis = 0.65 # wheel distance (m)
 
         # control parameters
@@ -68,6 +68,7 @@ class DriverAgent(object):
         self._right_spd = self.speed
 
         # then put the angular speed to the wheels, based on the wheel distance
+        # TODO:绑定omega*radius为一个恒定的关系：omega*radius = preset_turning_speed
         if self.omega >= 0:
             # turning right
             left_angular_spd = self.omega * (self.radius + self.wheel_dis/2)
