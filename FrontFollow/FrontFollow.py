@@ -30,9 +30,9 @@ class FFL(object):
         self.button = Button.Button()
 
         # speed parameters
-        self.f_spd = 0.1  # forward speed(m/s)
-        self.b_spd = -0.1  # backward speed(m/s)
-        self.t_spd = 0.2  # turning speed(m/s) # maximum turning speed for counting the omega
+        self.f_spd = 0.3  # forward speed(m/s)
+        self.b_spd = -0.3  # backward speed(m/s)
+        self.t_spd = 0.3  # turning speed(m/s) # maximum turning speed for counting the omega
 
         self.spd_change_ratio = 0.8  # speed change ratio
 
