@@ -80,11 +80,32 @@ class FFL(object):
 
     def main(self):
         while True:
-            # if self.softskin.is_abnormal:
-            #     print("emergency stop due to abnormal softskin force")
-            #     self.FFLevent.clear()
-            #     self.update_driver(speed=0, omega=0, radius=0)
             self.FFLevent.wait()
+
+            # ============================================
+            # 新增：SoftSkin 异常检测与波峰解锁机制
+            # ============================================
+            if self.softskin.is_abnormal:
+                print("emergency stop due to abnormal softskin force")
+                self.update_driver(speed=0, omega=0, radius=0)
+
+                # 启动解锁监听模式
+                self.softskin.start_unlock_monitoring()
+                print("🔒 System locked. Waiting for 3 taps to unlock...")
+
+                # 进入监听循环，等待连续3个波峰（带2秒超时重置）
+                while not self.softskin.check_can_unlock():
+                    self.softskin.detect_peaks()  # 检测波峰
+                    time.sleep(0.05)  # 50ms 检查间隔
+
+                # 解锁成功，重置状态并恢复
+                print("✅ unlocked, resuming front following...")
+                self.softskin.reset_after_unlock()
+                continue  # 回到循环开头，继续等待 FFLevent
+
+            # ============================================
+            # 原有正常跟随逻辑（完全不变）
+            # ============================================
             leg_data = self.LiDAR.get_leg_data()
             if leg_data is not None:
                 self.left_leg = leg_data[0]
