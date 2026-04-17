@@ -41,7 +41,7 @@ class FFL(object):
         self.forward_boundary = 150  # if the legs are further than this, then should go forward
         self.backward_boundary = -50  # likewise, go backward
         self.center_left_boundary = 20  # like wise, turn left while moving forward, the center means this is for the center point of user
-        self.center_right_boundary = 20  # like wise, turn right
+        self.center_right_boundary = -20  # like wise, turn right
         self.left_boundary = 90
         self.right_boundary = -70
         self.left_max_boundary = 140  # left max value
