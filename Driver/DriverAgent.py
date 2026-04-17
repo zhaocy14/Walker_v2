@@ -34,7 +34,7 @@ class DriverAgent(object):
         # ===================== 防卡顿核心：缓存上一次转速 =====================
         self.last_left_rpm = 0  # 上一次左轮转速
         self.last_right_rpm = 0  # 上一次右轮转速
-        self.RPM_THRESHOLD = 1  # 转速变化≥1rpm才更新
+        self.RPM_THRESHOLD = 3  # 转速变化≥3rpm才更新
         # ====================================================================
 
         # initialize the odometry

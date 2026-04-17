@@ -165,9 +165,9 @@ class DriversSerial(object):
             self.set_motor_cond(motor=motor, cond=0)
             time.sleep(0.1)
 
-        # 5. 驱动器严格协议顺序：停止 → 写速度 → 启动
-        self.set_motor_cond(motor=motor, cond=0)
-        time.sleep(0.01)
+        # # 5. 驱动器严格协议顺序：停止 → 写速度 → 启动
+        # self.set_motor_cond(motor=motor, cond=0)
+        # time.sleep(0.01)
 
         # 写入速度（仅支持绝对值）
         self._write_register(
