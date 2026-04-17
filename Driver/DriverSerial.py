@@ -32,7 +32,7 @@ class DriversSerial(object):
         self.left_device_id = 0x01
         self.right_device_id = 0x02
 
-        self.max_rpm = 318 # approximately 3m/s
+        self.max_rpm = 200 # approximately 3m/s
 
         # serial part
         self.client = ModbusSerialClient(
