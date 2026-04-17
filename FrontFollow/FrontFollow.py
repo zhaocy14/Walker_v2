@@ -3,13 +3,17 @@ import torch
 import time
 import threading
 import sklearn
-import os,sys
+import os
+import sys
+import signal  # 新增：捕获程序退出信号
+
 pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
 
 from Driver.DriverAgent import DriverAgent
 from Sensors import Cameras, Softskin, LiDAR_YDLIDAR, Button
+
 
 class FFL(object):
     def __init__(self):
@@ -55,6 +59,12 @@ class FFL(object):
         self.FFLthread.daemon = True
         self.FFLthread.start()
 
+    # 新增：安全停止函数，电机失能
+    def stop_safely(self):
+        print("\n程序退出，电机失能...")
+        self.update_driver(0, 0, 0)
+        self.driver.enable_driver(False)
+
     def update_driver(self, speed: float = 0, omega: float = 0, radius: float = 0):
 
         current_speed, current_radius, current_omega = self.driver.speed, self.driver.radius, self.driver.omega
@@ -79,14 +89,17 @@ class FFL(object):
             if leg_data is not None:
                 self.left_leg = leg_data[0]
                 self.right_leg = leg_data[1]
-                self.human_center = (self.left_leg + self.right_leg)/2
-                print("left leg:", self.left_leg, "\tright leg:", self.right_leg, "\thuman center:", self.human_center)
 
+                # 优化：先判断无腿，再计算中心，避免无效数据运算
                 if self.left_leg[0] < -1500 or self.right_leg[0] < -1500:
                     print("no leg detected, stop")
                     self.update_driver(speed=0, omega=0, radius=0)
                     time.sleep(0.1)
                     continue
+
+                self.human_center = (self.left_leg + self.right_leg) / 2
+                print("left leg:", self.left_leg, "\tright leg:", self.right_leg, "\thuman center:", self.human_center)
+
                 # conditioning
                 if self.human_center[0] > self.forward_boundary:
                     if self.human_center[1] > self.center_left_boundary:
@@ -143,5 +156,19 @@ class FFL(object):
 
 if __name__ == "__main__":
     ffl = FFL()
+
+
+    # 新增：捕获Ctrl+C退出信号，自动电机失能
+    def exit_handler(signum, frame):
+        ffl.stop_safely()
+        sys.exit(0)
+
+
+    signal.signal(signal.SIGINT, exit_handler)
+
     time.sleep(1)
     ffl.FFLevent.set()
+
+    # 保持主程序运行
+    while True:
+        time.sleep(1)
