@@ -174,6 +174,6 @@ if __name__ == "__main__":
     time.sleep(2)
     driver_ins.enable_driver(True)
     time.sleep(1)
-    driver_ins.update_control_params(speed=0.2, omega=0, radius=0)
+    driver_ins.update_control_params(speed=-0.2, omega=0, radius=0)
     time.sleep(2)
     driver_ins.enable_driver(False)
