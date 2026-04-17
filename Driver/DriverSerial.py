@@ -331,12 +331,12 @@ if __name__ == "__main__":
     time.sleep(5)
 
     #test dangerous rpm:
-    driver.set_single_driver_speed(rpm=500, motor='left')
-    driver.set_single_driver_speed(rpm=500, motor='right')
-    time.sleep(2)
-    driver.set_single_driver_speed(rpm=-500, motor='left')
-    driver.set_single_driver_speed(rpm=-500, motor='right')
-    time.sleep(2)
+    # driver.set_single_driver_speed(rpm=500, motor='left')
+    # driver.set_single_driver_speed(rpm=500, motor='right')
+    # time.sleep(2)
+    # driver.set_single_driver_speed(rpm=-500, motor='left')
+    # driver.set_single_driver_speed(rpm=-500, motor='right')
+    # time.sleep(2)
     # stop:
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
