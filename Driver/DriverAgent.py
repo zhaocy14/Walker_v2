@@ -97,8 +97,8 @@ class DriverAgent(object):
         # 线速度转 RPM 标准公式
         wheel_circumference = 2 * math.pi * self.wheel_radius
         # ===================== 核心修复：删除错误的负号，解决原地转圈 =====================
-        left_rpm = -int(self._left_spd / wheel_circumference * 60)
-        right_rpm = int(self._right_spd / wheel_circumference * 60)
+        left_rpm = int(self._left_spd / wheel_circumference * 60)
+        right_rpm = -int(self._right_spd / wheel_circumference * 60)
         # ================================================================================
 
         # 防卡顿：仅转速变化超过阈值时，才写入电机
@@ -153,9 +153,9 @@ if __name__ == "__main__":
     time.sleep(2)
     driver_ins.update_control_params(speed=-0.2, omega=0, radius=0)
     time.sleep(2)
-    driver_ins.update_control_params(speed=0, omega=0.3, radius=0.6)
+    driver_ins.update_control_params(speed=0, omega=0.3, radius=0.5)
     time.sleep(5)
-    driver_ins.update_control_params(speed=0, omega=-0.3, radius=0.6)
+    driver_ins.update_control_params(speed=0, omega=-0.3, radius=0.5)
     time.sleep(5)
     driver_ins.update_control_params(speed=0, omega=0.0, radius=0)
     time.sleep(2)
