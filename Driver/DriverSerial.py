@@ -32,7 +32,7 @@ class DriversSerial(object):
         self.left_device_id = 0x01
         self.right_device_id = 0x02
 
-        self.max_rpm = 200 # approximately 3m/s
+        self.max_rpm = 80 # approximately 0.75m/s
 
         # serial part
         self.client = ModbusSerialClient(
@@ -323,19 +323,12 @@ if __name__ == "__main__":
     driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(5)
-    driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
-    time.sleep(5)
-
-    driver.set_single_driver_speed(rpm=-30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
-    time.sleep(1)
     driver.set_single_driver_speed(rpm=20, motor='left')
     driver.set_single_driver_speed(rpm=-20, motor='right')
-    time.sleep(1.5)
+    time.sleep(2)
     driver.set_single_driver_speed(rpm=20, motor='left')
     driver.set_single_driver_speed(rpm=20, motor='right')
-    time.sleep(10)
+    time.sleep(5)
 
     #test dangerous rpm:
     driver.set_single_driver_speed(rpm=500, motor='left')
