@@ -118,7 +118,7 @@ class DriverAgent(object):
             left_pos, right_pos = self.driver_serial.get_driver_position()
             self.odo.update_pose(left_pos, right_pos)
             # time delay for control loop
-            time.sleep(0.1)
+            time.sleep(0.2)
 
 
 if __name__ == "__main__":
