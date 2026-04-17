@@ -132,7 +132,7 @@ class FFL(object):
                         else:
                             print("go left")
                             # 左转半径（正常，保持不变）
-                            radius = max(0.3, 0.1 + abs(0.4 * (self.left_max_boundary - self.left_leg[1]) / (
+                            radius = max(0.5, 0.3 + abs(0.4 * (self.left_max_boundary - self.left_leg[1]) / (
                                     self.left_max_boundary - self.left_boundary)))
                             omega = -self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
@@ -146,7 +146,7 @@ class FFL(object):
                         else:
                             print("go right")
                             # ✅ 核心修复：右转半径公式与左转完全对称，分母参数修正
-                            radius = max(0.3, 0.1 + abs(0.4 * (self.right_leg[1] - self.right_max_boundary) / (
+                            radius = max(0.5, 0.3 + abs(0.4 * (self.right_leg[1] - self.right_max_boundary) / (
                                     self.right_max_boundary - self.right_boundary)))
                             omega = self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
