@@ -82,6 +82,11 @@ class FFL(object):
                 self.human_center = (self.left_leg + self.right_leg)/2
                 print("left leg:", self.left_leg, "\tright leg:", self.right_leg, "\thuman center:", self.human_center)
 
+                if self.left_leg[0] < -1500 or self.right_leg[0] < -1500:
+                    print("no leg detected, stop")
+                    self.update_driver(speed=0, omega=0, radius=0)
+                    time.sleep(0.1)
+                    continue
                 # conditioning
                 if self.human_center[0] > self.forward_boundary:
                     if self.human_center[1] > self.center_left_boundary:
@@ -132,10 +137,6 @@ class FFL(object):
                     # stop
                     print("stop")
                     self.update_driver(speed=0, omega=0, radius=0)
-            else:
-                # no leg detected, stop
-                print("no leg detected, stop")
-                self.update_driver(speed=0, omega=0, radius=0)
 
             time.sleep(0.1)
 
