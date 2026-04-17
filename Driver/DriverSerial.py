@@ -124,64 +124,58 @@ class DriversSerial(object):
 
     def set_single_driver_speed(self, rpm, motor: str):
         """
-        修正版：严格遵循英鹏飞协议顺序，方向稳定可控
-        1. 先停止 → 2. 设方向 → 3. 设速度 → 4. 启动
-        方向稳定错误：直接翻转direction值即可（0↔1）
+        英鹏飞485驱动器 最终修正版
+        核心：删除冲突的方向寄存器调用，严格遵循驱动器协议，左右电机独立对称换向
+        功能：rpm正负直接控制方向，右电机自动反向适配对称安装
         """
-        # 1. 电机选择校验
+        # 1. 基础校验
         if motor not in ['left', 'right']:
             print("电机选择错误，仅支持'left'/'right'")
             return
 
-        # 2. 【关键】方向稳定错误修正：直接翻转direction（0↔1）
-        # 你现在方向稳定反，就把下面注释打开，永久修正
-        reverse_dir = True  # True=翻转方向，False=不翻转
-
-        # 3. 处理方向与启停指令
-        if rpm > 0:
-            direction = 0
-            start_cond = 1
-        elif rpm < 0:
-            direction = 1
-            start_cond = 257
+        # 2. 【对称电机核心逻辑】右电机自动反向（适配双电机对称安装）
+        if motor == "right":
+            target_rpm = -rpm  # 右电机取反，实现左右同步前进/后退
         else:
-            direction = 0
-            start_cond = 0
+            target_rpm = rpm  # 左电机保持原方向
 
-        # 稳定反向修正：翻转方向+启停指令
-        if reverse_dir:
-            direction = 1 - direction
-            start_cond = 257 if start_cond == 1 else 1 if start_cond == 257 else 0
+        # 3. 映射启停指令（驱动器唯一方向控制源）
+        abs_rpm = abs(target_rpm)
+        if target_rpm > 0:
+            cond = 1  # 正转
+        elif target_rpm < 0:
+            cond = 257  # 反转
+        else:
+            cond = 0  # 停止
 
-        # 4. 高频换向安全：先停止电机
+        # 4. 安全换向：方向改变时，先停止电机
         pre_rpm = self.l_rpm if motor == 'left' else self.r_rpm
-        if pre_rpm != 0 and (rpm * pre_rpm < 0):
+        if pre_rpm != 0 and (target_rpm * pre_rpm < 0):
             self.set_motor_cond(motor=motor, cond=0)
             time.sleep(0.1)
 
-        # 5. 【核心修正】严格按协议顺序执行
-        # 步骤1：设置方向（0x006B）
-        self.set_motor_direction(direction=direction, motor=motor)
-        time.sleep(0.01)  # 小延时保证指令写入
+        # 5. 【驱动器严格协议顺序】停止 → 写速度 → 启动
+        # 第一步：先停止（防止指令冲突）
+        self.set_motor_cond(motor=motor, cond=0)
+        time.sleep(0.01)
 
-        # 步骤2：设置速度（0x009A，仅传绝对值）
-        abs_rpm = abs(rpm)
+        # 第二步：写入速度（仅支持绝对值）
         self._write_register(
             address=0x009A,
             value=abs_rpm,
-            action=f"{motor}电机速度设置：{abs_rpm}转/分",
+            action=f"{motor}电机速度: {abs_rpm}rpm",
             motor=motor
         )
         time.sleep(0.01)
 
-        # 步骤3：启动/停止（0x00C8）
-        self.set_motor_cond(motor=motor, cond=start_cond)
+        # 第三步：发送启停+方向指令（唯一控制方向！）
+        self.set_motor_cond(motor=motor, cond=cond)
 
         # 6. 更新本地缓存
         if motor == 'left':
-            self.l_rpm = rpm
+            self.l_rpm = target_rpm
         else:
-            self.r_rpm = rpm
+            self.r_rpm = target_rpm
 
     def set_motor_direction(self, direction:int, motor:str):
         """
