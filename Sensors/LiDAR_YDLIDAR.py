@@ -235,7 +235,7 @@ class LiDAR_YDLIDAR:
     def scan(self):
         try_times = 0
         scan_time_for_save = 1000
-        is_save_lidar = False   # whether save the whole img
+        is_save_lidar = True   # whether save the whole img
         is_save_leg = True      # whether save the leg scanning area
         while True:
             try:
@@ -249,7 +249,7 @@ class LiDAR_YDLIDAR:
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
-                        self.detect_obstacle(False)
+                        self.detect_obstacle(True)
                         # to save the image every certain scans
                         if scan_time_for_save > self.save_freq:
                             scan_time_for_save = 0
