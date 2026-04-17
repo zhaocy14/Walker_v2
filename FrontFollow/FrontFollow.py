@@ -5,7 +5,7 @@ import threading
 import sklearn
 import os
 import sys
-import signal  # 新增：捕获程序退出信号
+import signal
 
 pwd = os.path.abspath(os.path.abspath(__file__))
 father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
@@ -110,7 +110,8 @@ class FFL(object):
                             self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go left")
-                            radius = max(0.5, 0.3 + abs(0.5 * (self.left_max_boundary - self.left_leg[0]) / (
+                            # ✅ 修改：缩小最小半径+降低系数，靠边时半径急剧变小，转弯更急
+                            radius = max(0.3, 0.1 + abs(0.2 * (self.left_max_boundary - self.left_leg[0]) / (
                                     self.left_max_boundary - self.left_boundary)))
                             omega = -self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
@@ -123,7 +124,8 @@ class FFL(object):
                             self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go right")
-                            radius = max(0.5, 0.3 + abs(0.5 * (self.right_leg[0] - self.right_max_boundary) / (
+                            # ✅ 修改：缩小最小半径+降低系数，靠边时半径急剧变小，转弯更急
+                            radius = max(0.3, 0.1 + abs(0.2 * (self.right_leg[0] - self.right_max_boundary) / (
                                     self.right_boundary - self.right_max_boundary)))
                             omega = self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
