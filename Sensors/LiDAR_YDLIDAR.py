@@ -249,7 +249,7 @@ class LiDAR_YDLIDAR:
                         for i, point in enumerate(scan.points):
                             temp_list.append([point.intensity, point.angle, point.range])
                         self.scan_raw_data = np.array(temp_list)
-                        self.detect_obstacle(True)
+                        self.detect_obstacle(False)
                         # to save the image every certain scans
                         if scan_time_for_save > self.save_freq:
                             scan_time_for_save = 0
