@@ -103,7 +103,7 @@ class DriverAgent(object):
         right_rpm = int(self._right_spd / wheel_circumference * 60)
 
         # ===================== 【复刻旧代码核心】omega<0 轮速取反 =====================
-        if self.omega < 0:
+        if self.omega <= 0:
             left_rpm = -left_rpm
             right_rpm = -right_rpm
         # ============================================================================
