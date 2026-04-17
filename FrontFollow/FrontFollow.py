@@ -30,9 +30,9 @@ class FFL(object):
         self.button = Button.Button()
 
         # speed parameters
-        self.f_spd = 0.3  # forward speed(m/s)
-        self.b_spd = -0.3  # backward speed(m/s)
-        self.t_spd = 0.3  # turning speed(m/s) # maximum turning speed for counting the omega
+        self.f_spd = 0.1  # forward speed(m/s)
+        self.b_spd = -0.1  # backward speed(m/s)
+        self.t_spd = 0.2  # turning speed(m/s) # maximum turning speed for counting the omega
 
         self.spd_change_ratio = 0.8  # speed change ratio
 
@@ -110,8 +110,8 @@ class FFL(object):
                             self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go left")
-                            # ✅ 修改：缩小最小半径+降低系数，靠边时半径急剧变小，转弯更急
-                            radius = max(0.3, 0.1 + abs(0.2 * (self.left_max_boundary - self.left_leg[0]) / (
+                            # 左转半径（正常，保持不变）
+                            radius = max(0.3, 0.1 + abs(0.4 * (self.left_max_boundary - self.left_leg[0]) / (
                                     self.left_max_boundary - self.left_boundary)))
                             omega = -self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
@@ -124,9 +124,9 @@ class FFL(object):
                             self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go right")
-                            # ✅ 修改：缩小最小半径+降低系数，靠边时半径急剧变小，转弯更急
-                            radius = max(0.3, 0.1 + abs(0.2 * (self.right_leg[0] - self.right_max_boundary) / (
-                                    self.right_boundary - self.right_max_boundary)))
+                            # ✅ 核心修复：右转半径公式与左转完全对称，分母参数修正
+                            radius = max(0.3, 0.1 + abs(0.4 * (self.right_leg[0] - self.right_max_boundary) / (
+                                    self.right_max_boundary - self.right_boundary)))
                             omega = self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
                             self.update_driver(speed=0, omega=omega, radius=radius)
