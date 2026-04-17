@@ -9,7 +9,7 @@ father_path = os.path.abspath(os.path.dirname(pwd) + os.path.sep + "..")
 sys.path.append(father_path)
 
 from Driver.DriverAgent import DriverAgent
-from Sensors import Cameras, Arduino, Softskin, LiDAR_YDLIDAR, Button
+from Sensors import Cameras, Softskin, LiDAR_YDLIDAR, Button
 
 class FFL(object):
     def __init__(self):
