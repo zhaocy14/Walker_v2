@@ -135,11 +135,13 @@ class DriversSerial(object):
             print("电机选择错误，仅支持'left'/'right'")
             return
 
-        # 2. 对称电机核心逻辑：右电机自动反向（适配双电机对称安装）
-        if motor == "right":
-            target_rpm = -rpm  # 右电机取反，实现左右同步前进/后退
-        else:
-            target_rpm = rpm  # 左电机保持原方向
+        # # 2. 对称电机核心逻辑：右电机自动反向（适配双电机对称安装）
+        # if motor == "right":
+        #     target_rpm = -rpm  # 右电机取反，实现左右同步前进/后退
+        # else:
+        #     target_rpm = rpm  # 左电机保持原方向
+        # 无需在此对称修改，因为会影响上层的转弯和直行逻辑控制，直接交给上层完成对称相关的修正
+        target_rpm = rpm
 
         # ===================== 核心：转速过载保护机制 =====================
         abs_target = abs(target_rpm)
@@ -313,18 +315,18 @@ if __name__ == "__main__":
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
 
-    driver.set_single_driver_speed(rpm=30, motor='left')
+    driver.set_single_driver_speed(rpm=-30, motor='left')
     driver.set_single_driver_speed(rpm=30, motor='right')
     time.sleep(5)
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
     time.sleep(2)
     #
-    driver.set_single_driver_speed(rpm=-30, motor='left')
+    driver.set_single_driver_speed(rpm=30, motor='left')
     driver.set_single_driver_speed(rpm=-30, motor='right')
     time.sleep(5)
-    driver.set_single_driver_speed(rpm=20, motor='left')
-    driver.set_single_driver_speed(rpm=-20, motor='right')
+    driver.set_single_driver_speed(rpm=-20, motor='left')
+    driver.set_single_driver_speed(rpm=20, motor='right')
     time.sleep(2)
     driver.set_single_driver_speed(rpm=20, motor='left')
     driver.set_single_driver_speed(rpm=20, motor='right')
