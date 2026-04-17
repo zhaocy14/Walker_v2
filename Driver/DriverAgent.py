@@ -155,7 +155,7 @@ if __name__ == "__main__":
     time.sleep(2)
     driver_ins.update_control_params(speed=0, omega=0.3, radius=0.6)
     time.sleep(5)
-    driver_ins.update_control_params(speed=0, omega=-0.3, radius=0.6)
+    driver_ins.update_control_params(speed=0, omega=0.3, radius=-0.6)
     time.sleep(5)
     driver_ins.update_control_params(speed=0, omega=0.0, radius=0)
     time.sleep(2)
