@@ -32,6 +32,8 @@ class DriversSerial(object):
         self.left_device_id = 0x01
         self.right_device_id = 0x02
 
+        self.max_rpm = 318 # approximately 3m/s
+
         # serial part
         self.client = ModbusSerialClient(
             framer=pymodbus.framer.FramerType.RTU,
@@ -124,20 +126,27 @@ class DriversSerial(object):
 
     def set_single_driver_speed(self, rpm, motor: str):
         """
-        英鹏飞485驱动器 最终修正版
-        核心：删除冲突的方向寄存器调用，严格遵循驱动器协议，左右电机独立对称换向
-        功能：rpm正负直接控制方向，右电机自动反向适配对称安装
+        英鹏飞485驱动器 最终版 + 转速过载保护
+        核心：删除冲突的方向寄存器，严格遵循协议，自动限制最大转速
+        功能：rpm正负直接控制方向，右电机自动反向适配对称安装，超转速自动保护
         """
         # 1. 基础校验
         if motor not in ['left', 'right']:
             print("电机选择错误，仅支持'left'/'right'")
             return
 
-        # 2. 【对称电机核心逻辑】右电机自动反向（适配双电机对称安装）
+        # 2. 对称电机核心逻辑：右电机自动反向（适配双电机对称安装）
         if motor == "right":
             target_rpm = -rpm  # 右电机取反，实现左右同步前进/后退
         else:
             target_rpm = rpm  # 左电机保持原方向
+
+        # ===================== 核心：转速过载保护机制 =====================
+        abs_target = abs(target_rpm)
+        if abs_target > self.max_rpm:
+            # 超限时：自动钳位到最大转速，保持原方向，打印警告
+            target_rpm = self.max_rpm if target_rpm > 0 else -self.max_rpm
+        # =================================================================
 
         # 3. 映射启停指令（驱动器唯一方向控制源）
         abs_rpm = abs(target_rpm)
@@ -154,12 +163,11 @@ class DriversSerial(object):
             self.set_motor_cond(motor=motor, cond=0)
             time.sleep(0.1)
 
-        # 5. 【驱动器严格协议顺序】停止 → 写速度 → 启动
-        # 第一步：先停止（防止指令冲突）
+        # 5. 驱动器严格协议顺序：停止 → 写速度 → 启动
         self.set_motor_cond(motor=motor, cond=0)
         time.sleep(0.01)
 
-        # 第二步：写入速度（仅支持绝对值）
+        # 写入速度（仅支持绝对值）
         self._write_register(
             address=0x009A,
             value=abs_rpm,
@@ -168,7 +176,7 @@ class DriversSerial(object):
         )
         time.sleep(0.01)
 
-        # 第三步：发送启停+方向指令（唯一控制方向！）
+        # 发送启停+方向指令
         self.set_motor_cond(motor=motor, cond=cond)
 
         # 6. 更新本地缓存
@@ -328,6 +336,14 @@ if __name__ == "__main__":
     driver.set_single_driver_speed(rpm=20, motor='left')
     driver.set_single_driver_speed(rpm=20, motor='right')
     time.sleep(10)
+
+    #test dangerous rpm:
+    driver.set_single_driver_speed(rpm=500, motor='left')
+    driver.set_single_driver_speed(rpm=500, motor='right')
+    time.sleep(2)
+    driver.set_single_driver_speed(rpm=-500, motor='left')
+    driver.set_single_driver_speed(rpm=-500, motor='right')
+    time.sleep(2)
     # stop:
     driver.set_single_driver_speed(rpm=0, motor='left')
     driver.set_single_driver_speed(rpm=0, motor='right')
