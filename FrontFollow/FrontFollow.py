@@ -88,45 +88,45 @@ class FFL(object):
                         if self.LiDAR.ob_front > 0 or self.LiDAR.ob_front_left > 0:
                             # obstacle
                             print("go left but obstacle")
-                            self.update_driver(speed=0, omega=0, radius=0)
+                            # self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go left")
                             radius = max(0.5, 0.3 + abs(0.5 * (self.left_max_boundary - self.left_leg[1]) / (
                                     self.left_max_boundary - self.left_boundary)))
                             omega = -self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
-                            self.update_driver(speed=0, omega=omega, radius=radius)
+                            # self.update_driver(speed=0, omega=omega, radius=radius)
                     elif self.human_center[0] < self.center_right_boundary:
                         # turn right
                         if self.LiDAR.ob_front > 0 or self.LiDAR.ob_front_right > 0:
                             # obstacle
                             print("go right but obstacle")
-                            self.update_driver(speed=0, omega=0, radius=0)
+                            # self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             print("go right")
                             radius = max(0.5, 0.3 + abs(0.5 * (self.right_leg[1] - self.right_max_boundary) / (
                                     self.right_boundary - self.right_max_boundary)))
                             omega = self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
-                            self.update_driver(speed=0, omega=omega, radius=radius)
+                            # self.update_driver(speed=0, omega=omega, radius=radius)
                     else:
                         if self.LiDAR.ob_front > 0:
                             # obstacle
                             print("go front but obstacle")
-                            self.update_driver(speed=0, omega=0, radius=0)
+                            # self.update_driver(speed=0, omega=0, radius=0)
                         else:
                             # go straight
                             print("go forward")
-                            self.update_driver(speed=self.f_spd, omega=0, radius=0)
+                            # self.update_driver(speed=self.f_spd, omega=0, radius=0)
                 elif self.human_center[1] < self.backward_boundary:
                     if self.LiDAR.ob_back > 0:
                         # obstacle
                         print("go back but obstacle")
-                        self.update_driver(speed=0, omega=0, radius=0)
+                        # self.update_driver(speed=0, omega=0, radius=0)
                     else:
                         # go backward
                         print("go backward")
-                        self.update_driver(speed=self.b_spd, omega=0, radius=0)
+                        # self.update_driver(speed=self.b_spd, omega=0, radius=0)
                 else:
                     # stop
                     print("stop")
