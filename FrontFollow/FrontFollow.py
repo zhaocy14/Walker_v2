@@ -95,7 +95,7 @@ class FFL(object):
                                     self.left_max_boundary - self.left_boundary)))
                             omega = -self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
-                            # self.update_driver(speed=0, omega=omega, radius=radius)
+                            self.update_driver(speed=0, omega=omega, radius=radius)
                     elif self.human_center[0] < self.center_right_boundary:
                         # turn right
                         if self.LiDAR.ob_front > 0 or self.LiDAR.ob_front_right > 0:
@@ -108,7 +108,7 @@ class FFL(object):
                                     self.right_boundary - self.right_max_boundary)))
                             omega = self.t_spd / radius
                             print(f"radius:{radius:.3f}, omega:{omega:.3f}")
-                            # self.update_driver(speed=0, omega=omega, radius=radius)
+                            self.update_driver(speed=0, omega=omega, radius=radius)
                     else:
                         if self.LiDAR.ob_front > 0:
                             # obstacle
@@ -117,7 +117,7 @@ class FFL(object):
                         else:
                             # go straight
                             print("go forward")
-                            # self.update_driver(speed=self.f_spd, omega=0, radius=0)
+                            self.update_driver(speed=self.f_spd, omega=0, radius=0)
                 elif self.human_center[1] < self.backward_boundary:
                     if self.LiDAR.ob_back > 0:
                         # obstacle
@@ -126,7 +126,7 @@ class FFL(object):
                     else:
                         # go backward
                         print("go backward")
-                        # self.update_driver(speed=self.b_spd, omega=0, radius=0)
+                        self.update_driver(speed=self.b_spd, omega=0, radius=0)
                 else:
                     # stop
                     print("stop")
