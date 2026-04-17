@@ -22,8 +22,8 @@ class SoftSkin(object):
                                           sensor_name="Softskin")  # Arduino Mega 2560 ttyACM0
         self.serial = serial.Serial(port_name, SOFTSKIN_BAUDRATE, timeout=None)
         # 转换设置读取速度的十六进制指令为字节类型
-        set_speed_cmd = bytes.fromhex("FF820000210000000000005D") # 30Hz
-        # set_speed_cmd = bytes.fromhex("FF820000640000000000001A") # 10Hz
+        # set_speed_cmd = bytes.fromhex("FF820000210000000000005D") # 30Hz
+        set_speed_cmd = bytes.fromhex("FF820000640000000000001A") # 10Hz
         # 向串口写入指令
         self.serial.write(set_speed_cmd)
         print("Softskin serial port:", port_name)
