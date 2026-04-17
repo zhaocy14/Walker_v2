@@ -91,21 +91,31 @@ class DriverAgent(object):
 
     def _set_wheel_rpm(self):
         """
-        【修复】修正速度符号错误（解决原地转圈）+ 防卡顿写入
-        完全匹配 DriverSerial 方向逻辑
+        【对标旧版本代码】完全复刻旧代码符号规则
+        1. 直行：正常
+        2. omega>0：右转
+        3. omega<0：左转（和旧代码一致）
         """
-        # 线速度转 RPM 标准公式
         wheel_circumference = 2 * math.pi * self.wheel_radius
-        # ===================== 核心修复：删除错误的负号，解决原地转圈 =====================
-        left_rpm = int(self._left_spd / wheel_circumference * 60)
-        right_rpm = -int(self._right_spd / wheel_circumference * 60)
-        # ================================================================================
 
-        # 防卡顿：仅转速变化超过阈值时，才写入电机
+        # 1. 基础转速计算
+        left_rpm = int(self._left_spd / wheel_circumference * 60)
+        right_rpm = int(self._right_spd / wheel_circumference * 60)
+
+        # ===================== 【复刻旧代码核心】omega<0 轮速取反 =====================
+        if self.omega < 0:
+            left_rpm = -left_rpm
+            right_rpm = -right_rpm
+        # ============================================================================
+
+        # ===================== 【旧代码硬件适配】右轮取反 =====================
+        right_rpm = -right_rpm
+        # ====================================================================
+
+        # 防卡顿写入（不变）
         if abs(left_rpm - self.last_left_rpm) >= self.RPM_THRESHOLD:
             self.driver_serial.set_single_driver_speed(rpm=left_rpm, motor='left')
             self.last_left_rpm = left_rpm
-
         if abs(right_rpm - self.last_right_rpm) >= self.RPM_THRESHOLD:
             self.driver_serial.set_single_driver_speed(rpm=right_rpm, motor='right')
             self.last_right_rpm = right_rpm
@@ -153,9 +163,9 @@ if __name__ == "__main__":
     time.sleep(2)
     driver_ins.update_control_params(speed=-0.2, omega=0, radius=0)
     time.sleep(2)
-    driver_ins.update_control_params(speed=0, omega=0.3, radius=0.5)
+    driver_ins.update_control_params(speed=0, omega=0.3, radius=0.8)
     time.sleep(5)
-    driver_ins.update_control_params(speed=0, omega=0.3, radius=-0.5)
+    driver_ins.update_control_params(speed=0, omega=-0.3, radius=0.8)
     time.sleep(5)
     driver_ins.update_control_params(speed=0, omega=0.0, radius=0)
     time.sleep(2)
