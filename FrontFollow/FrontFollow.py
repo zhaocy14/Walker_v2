@@ -38,14 +38,14 @@ class FFL(object):
         self.human_center = np.zeros((2,))
 
         # conditioning parameters
-        self.forward_boundary = 15  # if the legs are further than this, then should go forward
-        self.backward_boundary = -5  # likewise, go backward
-        self.center_left_boundary = 2  # like wise, turn left while moving forward, the center means this is for the center point of user
-        self.center_right_boundary = 1  # like wise, turn right
-        self.left_boundary = 9
-        self.right_boundary = -7
-        self.left_max_boundary = 14  # left max value
-        self.right_max_boundary = -14  # right max value
+        self.forward_boundary = 150  # if the legs are further than this, then should go forward
+        self.backward_boundary = -50  # likewise, go backward
+        self.center_left_boundary = 20  # like wise, turn left while moving forward, the center means this is for the center point of user
+        self.center_right_boundary = 20  # like wise, turn right
+        self.left_boundary = 90
+        self.right_boundary = -70
+        self.left_max_boundary = 140  # left max value
+        self.right_max_boundary = -140  # right max value
 
         # thread event
         self.FFLevent = threading.Event()
