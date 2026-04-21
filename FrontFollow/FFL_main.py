@@ -13,6 +13,7 @@ sys.path.append(father_path)
 
 from Driver.DriverAgent import DriverAgent
 from Sensors import Cameras, Softskin, LiDAR_YDLIDAR, Button
+from FrontFollow.SpeedBuffer import EMABuffer, SCurvePlanner, MinJerkPlanner
 
 
 class FFL(object):
@@ -34,7 +35,10 @@ class FFL(object):
         self.b_spd = -0.3  # backward speed(m/s)
         self.t_spd = 0.35  # turning speed(m/s) # maximum turning speed for counting the omega
 
-        self.spd_change_ratio = 0.8  # speed change ratio
+        # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
+        # 可选: 'ema' | 'scurve' | 'minjerk'
+        self.buffer_mode = 'scurve'
+        self._init_planners()
 
         # leg data
         self.left_leg = np.zeros((2,))
@@ -65,14 +69,37 @@ class FFL(object):
         self.update_driver(0, 0, 0)
         self.driver.enable_driver(False)
 
+    def _init_planners(self):
+        """
+        根据 buffer_mode 直接实例化各通道规划器，无需外部传参。
+        所有参数内聚在 SpeedBuffer 类内部。
+        """
+        if self.buffer_mode == 'ema':
+            self.planner_speed = EMABuffer()
+            self.planner_omega = EMABuffer()
+            self.planner_radius = EMABuffer()
+        elif self.buffer_mode == 'scurve':
+            self.planner_speed = SCurvePlanner(channel='speed')
+            self.planner_omega = SCurvePlanner(channel='omega')
+            self.planner_radius = SCurvePlanner(channel='radius')
+        elif self.buffer_mode == 'minjerk':
+            self.planner_speed = MinJerkPlanner()
+            self.planner_omega = MinJerkPlanner()
+            self.planner_radius = MinJerkPlanner()
+        else:
+            raise ValueError(f"Unknown buffer_mode: {self.buffer_mode}")
+
     def update_driver(self, speed: float = 0, omega: float = 0, radius: float = 0):
 
-        current_speed, current_radius, current_omega = self.driver.speed, self.driver.radius, self.driver.omega
-        target_speed, target_radius, target_omega = speed, radius, omega
+        actual_speed = self.planner_speed.update(speed)
+        actual_omega = self.planner_omega.update(omega)
+        actual_radius = self.planner_radius.update(radius)
 
-        actual_speed = current_speed + self.spd_change_ratio * (target_speed - current_speed)
-        actual_radius = current_radius + self.spd_change_ratio * (target_radius - current_radius)
-        actual_omega = current_omega + self.spd_change_ratio * (target_omega - current_omega)
+        # 保险：防止 DriverAgent 中 if self.omega < 0 在临界区触发
+        if abs(actual_omega) < 1e-4:
+            actual_omega = 0.0
+        if abs(actual_speed) < 1e-4:
+            actual_speed = 0.0
 
         self.driver.speed = actual_speed
         self.driver.radius = actual_radius
@@ -161,11 +188,11 @@ class FFL(object):
                             print("go forward")
                             self.update_driver(speed=self.f_spd, omega=0, radius=0)
                 elif self.human_center[0] < self.backward_boundary:
-                    # if self.LiDAR.ob_back > 0:
-                    #     # obstacle
-                    #     print("go back but obstacle")
-                    #     self.update_driver(speed=0, omega=0, radius=0)
-                    # else:
+                    if self.LiDAR.ob_back > 0:
+                        # obstacle
+                        print("go back but obstacle")
+                        self.update_driver(speed=0, omega=0, radius=0)
+                    else:
                         # go backward
                         print("go backward")
                         self.update_driver(speed=self.b_spd, omega=0, radius=0)
