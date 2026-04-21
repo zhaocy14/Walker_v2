@@ -161,11 +161,11 @@ class FFL(object):
                             print("go forward")
                             self.update_driver(speed=self.f_spd, omega=0, radius=0)
                 elif self.human_center[0] < self.backward_boundary:
-                    if self.LiDAR.ob_back > 0:
-                        # obstacle
-                        print("go back but obstacle")
-                        self.update_driver(speed=0, omega=0, radius=0)
-                    else:
+                    # if self.LiDAR.ob_back > 0:
+                    #     # obstacle
+                    #     print("go back but obstacle")
+                    #     self.update_driver(speed=0, omega=0, radius=0)
+                    # else:
                         # go backward
                         print("go backward")
                         self.update_driver(speed=self.b_spd, omega=0, radius=0)
