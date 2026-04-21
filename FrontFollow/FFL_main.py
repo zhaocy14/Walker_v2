@@ -31,13 +31,13 @@ class FFL(object):
         self.button = Button.Button()
 
         # speed parameters
-        self.f_spd = 0.6  # forward speed(m/s)
-        self.b_spd = -0.6  # backward speed(m/s)
-        self.t_spd = 0.6  # turning speed(m/s) # maximum turning speed for counting the omega
+        self.f_spd = 0.75  # forward speed(m/s)
+        self.b_spd = -0.75  # backward speed(m/s)
+        self.t_spd = 0.75  # turning speed(m/s) # maximum turning speed for counting the omega
 
         # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
         # 可选: 'ema' | 'scurve' | 'minjerk'
-        self.buffer_mode = 'minjerk'
+        self.buffer_mode = 'ema'
         self._init_planners()
 
         # leg data
