@@ -227,7 +227,8 @@ class LiDAR_YDLIDAR:
         self.ob_left = obstacle_area[obs_dis:-1, 0:obs_dis].sum()
         self.ob_right = obstacle_area[obs_dis:-1, -obs_dis:-1].sum()
         # # detect the back area to avoid crash the back
-        self.ob_back = obstacle_area[-int(obs_dis+20):-1, obs_dis:-obs_dis].sum()
+        # self.ob_back = obstacle_area[-int(obs_dis+20):-1, obs_dis:-obs_dis].sum()
+        self.ob_back = obstacle_area[-int(obs_dis):-1, obs_dis:-obs_dis].sum()
         if is_shown:
             print("Front_Left:%i, Front:%i, Front_Right:%i, Left:%i, Right:%i, Back:%i"%
                   (self.ob_front_left,self.ob_front,self.ob_front_right,self.ob_left,self.ob_right, self.ob_back))
