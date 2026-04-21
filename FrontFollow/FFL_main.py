@@ -37,7 +37,7 @@ class FFL(object):
 
         # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
         # 可选: 'ema' | 'scurve' | 'minjerk'
-        self.buffer_mode = 'scurve'
+        self.buffer_mode = 'minjerk'
         self._init_planners()
 
         # leg data
