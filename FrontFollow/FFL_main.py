@@ -13,7 +13,7 @@ sys.path.append(father_path)
 
 from Driver.DriverAgent import DriverAgent
 from Sensors import Cameras, Softskin, LiDAR_YDLIDAR, Button
-from FrontFollow.SpeedBuffer import EMABuffer, SCurvePlanner, MinJerkPlanner
+from SpeedBuffer import EMABuffer, SCurvePlanner, MinJerkPlanner
 
 
 class FFL(object):
@@ -31,9 +31,9 @@ class FFL(object):
         self.button = Button.Button()
 
         # speed parameters
-        self.f_spd = 0.3  # forward speed(m/s)
-        self.b_spd = -0.3  # backward speed(m/s)
-        self.t_spd = 0.35  # turning speed(m/s) # maximum turning speed for counting the omega
+        self.f_spd = 0.6  # forward speed(m/s)
+        self.b_spd = -0.6  # backward speed(m/s)
+        self.t_spd = 0.6  # turning speed(m/s) # maximum turning speed for counting the omega
 
         # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
         # 可选: 'ema' | 'scurve' | 'minjerk'
@@ -105,29 +105,64 @@ class FFL(object):
         self.driver.radius = actual_radius
         self.driver.omega = actual_omega
 
+    # ============================================
+    # 新增：解锁逻辑封装
+    # ============================================
+    def _wait_for_startup_unlock(self):
+        """
+        首次启动时的强制解锁等待。
+        阻塞直到检测到连续3个波峰解锁信号。
+        """
+        self.softskin.start_unlock_monitoring()
+        print("🔒 System locked on startup. Waiting for unlock to begin following...")
+
+        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
+        while not self.softskin.check_can_unlock():
+            self.softskin.detect_peaks()  # 检测波峰
+            time.sleep(0.05)  # 50ms 检查间隔
+
+        # 解锁成功，重置状态
+        print("✅ Startup unlocked. Beginning front following...")
+        self.softskin.reset_after_unlock()
+
+    def _handle_softskin_emergency(self):
+        """
+        SoftSkin 异常检测后的紧急停止与解锁恢复。
+        阻塞直到检测到连续3个波峰解锁信号，然后恢复跟随。
+        """
+        print("emergency stop due to abnormal softskin force")
+        self.update_driver(speed=0, omega=0, radius=0)
+
+        # 启动解锁监听模式
+        self.softskin.start_unlock_monitoring()
+        print("🔒 System locked. Waiting for 3 taps to unlock...")
+
+        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
+        while not self.softskin.check_can_unlock():
+            self.softskin.detect_peaks()  # 检测波峰
+            time.sleep(0.05)  # 50ms 检查间隔
+
+        # 解锁成功，重置状态并恢复
+        print("✅ unlocked, resuming front following...")
+        self.softskin.reset_after_unlock()
+
     def main(self):
+        first_run = True  # 标记是否为首次进入循环
         while True:
             self.FFLevent.wait()
 
             # ============================================
-            # 新增：SoftSkin 异常检测与波峰解锁机制
+            # 新增：首次启动强制解锁环节（仅第一次执行）
+            # ============================================
+            if first_run:
+                self._wait_for_startup_unlock()
+                first_run = False
+
+            # ============================================
+            # 原有：SoftSkin 异常检测与波峰解锁机制
             # ============================================
             if self.softskin.is_abnormal:
-                print("emergency stop due to abnormal softskin force")
-                self.update_driver(speed=0, omega=0, radius=0)
-
-                # 启动解锁监听模式
-                self.softskin.start_unlock_monitoring()
-                print("🔒 System locked. Waiting for 3 taps to unlock...")
-
-                # 进入监听循环，等待连续3个波峰（带2秒超时重置）
-                while not self.softskin.check_can_unlock():
-                    self.softskin.detect_peaks()  # 检测波峰
-                    time.sleep(0.05)  # 50ms 检查间隔
-
-                # 解锁成功，重置状态并恢复
-                print("✅ unlocked, resuming front following...")
-                self.softskin.reset_after_unlock()
+                self._handle_softskin_emergency()
                 continue  # 回到循环开头，继续等待 FFLevent
 
             # ============================================
