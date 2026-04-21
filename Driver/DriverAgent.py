@@ -73,21 +73,20 @@ class DriverAgent(object):
         self._right_spd = self.speed
 
         # then put the angular speed to the wheels, based on the wheel distance
-        if self.omega >= 0:
+        if self.omega > 0:
             # turning right
             left_angular_spd = self.omega * (self.radius + self.wheel_dis / 2)
             right_angular_spd = self.omega * (self.radius - self.wheel_dis / 2)
         else:
             # turning left
-            left_angular_spd = self.omega * (self.radius - self.wheel_dis / 2)
-            right_angular_spd = self.omega * (self.radius + self.wheel_dis / 2)
+            # 左转的omega是负的，所以要把他反过来加个符号
+            left_angular_spd = -self.omega * (self.radius - self.wheel_dis / 2)
+            right_angular_spd = -self.omega * (self.radius + self.wheel_dis / 2)
 
         self._left_spd += left_angular_spd
         self._right_spd += right_angular_spd
 
         return self._left_spd, self._right_spd
-
-    # ====================================================================================
 
     def _set_wheel_rpm(self):
         """
@@ -102,15 +101,8 @@ class DriverAgent(object):
         left_rpm = int(self._left_spd / wheel_circumference * 60)
         right_rpm = int(self._right_spd / wheel_circumference * 60)
 
-        # ===================== 【复刻旧代码核心】omega<0 轮速取反 =====================
-        if self.omega <= 0:
-            left_rpm = -left_rpm
-            right_rpm = -right_rpm
-        # ============================================================================
-
-        # ===================== 【旧代码硬件适配】右轮取反 =====================
+        # 右电机因对称放置需要反过来
         right_rpm = -right_rpm
-        # ====================================================================
 
         # 防卡顿写入（不变）
         if abs(left_rpm - self.last_left_rpm) >= self.RPM_THRESHOLD:
