@@ -20,6 +20,11 @@ class EMABuffer:
             self.pos += self.ratio * diff
         return self.pos
 
+    def quick_settle(self, target):
+        """强制立即吸附到目标，用于转弯→直行等紧急状态切换"""
+        self.pos = target
+        return self.pos
+
 
 class SCurvePlanner:
     """
@@ -28,8 +33,8 @@ class SCurvePlanner:
     """
     _PRESETS = {
         'speed':  {'vmax': 0.20, 'amax': 0.50},
-        'omega':  {'vmax': 0.50, 'amax': 1.00},
-        'radius': {'vmax': 1.00, 'amax': 2.00},
+        'omega':  {'vmax': 0.50, 'amax': 2.50},  # B: 更激进，转弯→直行更快
+        'radius': {'vmax': 1.00, 'amax': 4.00},  # B: 更激进
     }
 
     def __init__(self, channel='speed', dt=0.1):
@@ -78,14 +83,32 @@ class SCurvePlanner:
 
         return self.pos
 
+    def quick_settle(self, target):
+        """强制立即吸附到目标，清空速度状态"""
+        self.pos = target
+        self.vel = 0.0
+        return self.pos
+
 
 class MinJerkPlanner:
     """
     Minimum Jerk 轨迹规划。
-    过渡时间根据距离动态计算，无需外部参数。
+    过渡时间根据距离动态计算，支持按通道类型预设不同激进程度。
+    channel: 'speed' | 'omega' | 'radius'
     """
-    def __init__(self, dt=0.1):
+    _PRESETS = {
+        'speed':  {'T_min': 0.30, 'T_max': 0.80, 'scale': 1.5},  # 线速度：偏平滑
+        'omega':  {'T_min': 0.15, 'T_max': 0.40, 'scale': 1.0},  # 角速度：更激进
+        'radius': {'T_min': 0.15, 'T_max': 0.40, 'scale': 1.0},  # 半径：更激进
+    }
+
+    def __init__(self, channel='speed', dt=0.1):
+        cfg = self._PRESETS.get(channel, self._PRESETS['speed'])
+        self.T_min = cfg['T_min']
+        self.T_max = cfg['T_max']
+        self.scale = cfg['scale']
         self.dt = dt
+
         self.p = 0.0
         self.v = 0.0
         self.a = 0.0
@@ -115,7 +138,7 @@ class MinJerkPlanner:
         if not self.planning or abs(target - self.p_target) > 1e-3:
             self.p_target = target
             dist = abs(target - self.p)
-            T = max(0.3, min(1.0, 2.0 * math.sqrt(dist)))
+            T = max(self.T_min, min(self.T_max, self.scale * math.sqrt(dist)))
             self._plan(self.p, self.v, self.a, target, 0.0, 0.0, T)
 
         if self.t >= self.T:
@@ -137,47 +160,24 @@ class MinJerkPlanner:
         self.t += self.dt
         return self.p
 
+    def quick_settle(self, target):
+        """强制立即吸附到目标，清空轨迹状态"""
+        self.p = target
+        self.v = 0.0
+        self.a = 0.0
+        self.planning = False
+        return self.p
+
 
 if __name__ == "__main__":
-    """
-    独立测试：验证三种缓冲器的收敛行为
-    """
     import time
-
     print("=" * 60)
     print("SpeedBuffer 独立测试")
     print("=" * 60)
-
-    targets = [
-        (0.0, 0.0, 0.0, "初始化"),
-        (0.3, 0.0, 0.0, "切到直行 0.3"),
-        (0.3, -0.3, 0.8, "切到左转"),
-        (0.3, 0.0, 0.0, "切回直行（观察 omega 收敛）"),
-    ]
-
-    for mode_name, PlannerClass, kwargs in [
-        ("EMA", EMABuffer, {}),
-        ("S-Curve", SCurvePlanner, {"channel": "speed"}),  # speed 通道仅用于测试
-        ("MinJerk", MinJerkPlanner, {}),
-    ]:
-        print(f"\n--- {mode_name} 测试 ---")
-        # 为三个通道分别创建实例
-        if mode_name == "S-Curve":
-            p_speed = SCurvePlanner(channel='speed')
-            p_omega = SCurvePlanner(channel='omega')
-            p_radius = SCurvePlanner(channel='radius')
-        else:
-            p_speed = PlannerClass(**kwargs)
-            p_omega = PlannerClass(**kwargs)
-            p_radius = PlannerClass(**kwargs)
-
-        step = 0
-        for tgt_spd, tgt_omg, tgt_rad, desc in targets:
-            for _ in range(15):
-                s = p_speed.update(tgt_spd)
-                o = p_omega.update(tgt_omg)
-                r = p_radius.update(tgt_rad)
-                if _ == 0:
-                    print(f"  [{desc}] tgt=({tgt_spd:.1f},{tgt_omg:.1f},{tgt_rad:.1f}) -> "
-                          f"actual=({s:.4f},{o:.4f},{r:.4f})")
-                step += 1
+    # 测试 quick_settle
+    sc = SCurvePlanner(channel='omega')
+    for t in [0.3, 0.3, 0.3, 0.0, 0.0]:
+        print(f"target={t:.1f} -> normal={sc.update(t):.4f}")
+    print("--- quick_settle(0) ---")
+    print(f"snap to 0: {sc.quick_settle(0.0):.4f}")
+    print(f"next normal update to 0: {sc.update(0.0):.4f}")

@@ -31,13 +31,13 @@ class FFL(object):
         self.button = Button.Button()
 
         # speed parameters
-        self.f_spd = 0.75  # forward speed(m/s)
-        self.b_spd = -0.75  # backward speed(m/s)
-        self.t_spd = 0.75  # turning speed(m/s) # maximum turning speed for counting the omega
+        self.f_spd = 0.6  # forward speed(m/s)
+        self.b_spd = -0.6  # backward speed(m/s)
+        self.t_spd = 0.6  # turning speed(m/s) # maximum turning speed for counting the omega
 
         # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
         # 可选: 'ema' | 'scurve' | 'minjerk'
-        self.buffer_mode = 'ema'
+        self.buffer_mode = 'scurve'
         self._init_planners()
 
         # leg data
@@ -83,17 +83,36 @@ class FFL(object):
             self.planner_omega = SCurvePlanner(channel='omega')
             self.planner_radius = SCurvePlanner(channel='radius')
         elif self.buffer_mode == 'minjerk':
-            self.planner_speed = MinJerkPlanner()
-            self.planner_omega = MinJerkPlanner()
-            self.planner_radius = MinJerkPlanner()
+            self.planner_speed = MinJerkPlanner(channel='speed')
+            self.planner_omega = MinJerkPlanner(channel='omega')
+            self.planner_radius = MinJerkPlanner(channel='radius')
         else:
             raise ValueError(f"Unknown buffer_mode: {self.buffer_mode}")
 
     def update_driver(self, speed: float = 0, omega: float = 0, radius: float = 0):
+        # ============================================
+        # 方案C：状态感知——转弯→直行快速过渡
+        # ============================================
+        # 判断条件：目标要求直行前进(speed>0)，且目标omega已归零，
+        # 但当前底盘仍有残余角速度（说明刚从转弯切过来）
+        is_turn_to_straight = (
+            speed > 0.05
+            and abs(omega) < 1e-3
+            and abs(self.driver.omega) > 0.05
+        )
 
-        actual_speed = self.planner_speed.update(speed)
-        actual_omega = self.planner_omega.update(omega)
-        actual_radius = self.planner_radius.update(radius)
+        if is_turn_to_straight:
+            # 对 omega 和 radius 强制立即归零，消除"转过了"的尾巴
+            # speed 仍走正常缓冲，保证起步平滑
+            actual_omega = self.planner_omega.quick_settle(0.0)
+            actual_radius = self.planner_radius.quick_settle(0.0)
+            actual_speed = self.planner_speed.update(speed)
+        else:
+            # 其他所有情况（含转弯→停止）维持原有缓冲逻辑
+            actual_speed = self.planner_speed.update(speed)
+            actual_omega = self.planner_omega.update(omega)
+            actual_radius = self.planner_radius.update(radius)
+        # ============================================
 
         # 保险：防止 DriverAgent 中 if self.omega < 0 在临界区触发
         if abs(actual_omega) < 1e-4:
@@ -104,47 +123,6 @@ class FFL(object):
         self.driver.speed = actual_speed
         self.driver.radius = actual_radius
         self.driver.omega = actual_omega
-
-    # ============================================
-    # 新增：解锁逻辑封装
-    # ============================================
-    def _wait_for_startup_unlock(self):
-        """
-        首次启动时的强制解锁等待。
-        阻塞直到检测到连续3个波峰解锁信号。
-        """
-        self.softskin.start_unlock_monitoring()
-        print("🔒 System locked on startup. Waiting for unlock to begin following...")
-
-        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
-        while not self.softskin.check_can_unlock():
-            self.softskin.detect_peaks()  # 检测波峰
-            time.sleep(0.05)  # 50ms 检查间隔
-
-        # 解锁成功，重置状态
-        print("✅ Startup unlocked. Beginning front following...")
-        self.softskin.reset_after_unlock()
-
-    def _handle_softskin_emergency(self):
-        """
-        SoftSkin 异常检测后的紧急停止与解锁恢复。
-        阻塞直到检测到连续3个波峰解锁信号，然后恢复跟随。
-        """
-        print("emergency stop due to abnormal softskin force")
-        self.update_driver(speed=0, omega=0, radius=0)
-
-        # 启动解锁监听模式
-        self.softskin.start_unlock_monitoring()
-        print("🔒 System locked. Waiting for 3 taps to unlock...")
-
-        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
-        while not self.softskin.check_can_unlock():
-            self.softskin.detect_peaks()  # 检测波峰
-            time.sleep(0.05)  # 50ms 检查间隔
-
-        # 解锁成功，重置状态并恢复
-        print("✅ unlocked, resuming front following...")
-        self.softskin.reset_after_unlock()
 
     def main(self):
         first_run = True  # 标记是否为首次进入循环
@@ -237,6 +215,47 @@ class FFL(object):
                     self.update_driver(speed=0, omega=0, radius=0)
 
             time.sleep(0.1)
+
+    # ============================================
+    # 新增：解锁逻辑封装
+    # ============================================
+    def _wait_for_startup_unlock(self):
+        """
+        首次启动时的强制解锁等待。
+        阻塞直到检测到连续3个波峰解锁信号。
+        """
+        self.softskin.start_unlock_monitoring()
+        print("🔒 System locked on startup. Waiting for unlock to begin following...")
+
+        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
+        while not self.softskin.check_can_unlock():
+            self.softskin.detect_peaks()  # 检测波峰
+            time.sleep(0.05)  # 50ms 检查间隔
+
+        # 解锁成功，重置状态
+        print("✅ Startup unlocked. Beginning front following...")
+        self.softskin.reset_after_unlock()
+
+    def _handle_softskin_emergency(self):
+        """
+        SoftSkin 异常检测后的紧急停止与解锁恢复。
+        阻塞直到检测到连续3个波峰解锁信号，然后恢复跟随。
+        """
+        print("emergency stop due to abnormal softskin force")
+        self.update_driver(speed=0, omega=0, radius=0)
+
+        # 启动解锁监听模式
+        self.softskin.start_unlock_monitoring()
+        print("🔒 System locked. Waiting for 3 taps to unlock...")
+
+        # 进入监听循环，等待连续3个波峰（带2秒超时重置）
+        while not self.softskin.check_can_unlock():
+            self.softskin.detect_peaks()  # 检测波峰
+            time.sleep(0.05)  # 50ms 检查间隔
+
+        # 解锁成功，重置状态并恢复
+        print("✅ unlocked, resuming front following...")
+        self.softskin.reset_after_unlock()
 
 
 if __name__ == "__main__":
