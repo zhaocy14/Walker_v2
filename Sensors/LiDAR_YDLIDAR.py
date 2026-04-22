@@ -68,13 +68,10 @@ class LiDAR_YDLIDAR:
         self.cv_show = cv_show
         self.save_freq = 30  # save frequency in how many scans
 
-        # event
-        self.lidar_process_event = threading.Event()
-        self.lidar_process_event.clear()
-        self.lidar_process_event.set()
-
-        # threading
+        # 退出标志与线程
+        self.running = True
         self.reading_thread = threading.Thread(target=self.scan, args=())
+        self.reading_thread.daemon = True
         self.reading_thread.start()
 
     def lidar_settings(self,):
@@ -238,10 +235,9 @@ class LiDAR_YDLIDAR:
         scan_time_for_save = 1000
         is_save_lidar = False   # whether save the whole img
         is_save_leg = False      # whether save the leg scanning area
-        while True:
+        while self.running:
             try:
-                self.lidar_process_event.wait()
-                while self.ret and ydlidar.os_isOk():
+                while self.running and self.ret and ydlidar.os_isOk():
                     scan = ydlidar.LaserScan()
                     r = self.lidar.doProcessSimple(scan)
                     if r:
@@ -271,7 +267,6 @@ class LiDAR_YDLIDAR:
                 time.sleep(0.5)
                 try_times += 1
                 if try_times > 100:
-
                     self.lidar.turnOff()
                     self.lidar.disconnecting()
                     break
@@ -297,11 +292,16 @@ class LiDAR_YDLIDAR:
         """
         return self.leg_img
 
+    def stop(self):
+        """外部调用：请求线程退出并关闭雷达"""
+        self.running = False
+        if hasattr(self, 'lidar'):
+            self.lidar.turnOff()
+            self.lidar.disconnecting()
+
 if __name__ == "__main__":
     lidar = LiDAR_YDLIDAR(text_show=False)
     # just for checking the LiDAR
     # lidar_instance = LiDAR(is_zmq=False)
     # lidar_instance.python_scan(is_show=True)
     # print(lidar_instance.port_name)
-
-

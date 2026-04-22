@@ -45,6 +45,9 @@ class DriverAgent(object):
 
         self.disable_mode = disable_mode
 
+        # 退出标志与线程
+        self.running = True
+
         # main thread for control
         self.thread_control = threading.Thread(target=self.main_control, args=())
         self.thread_control.daemon = True  # 守护线程，程序退出自动关闭
@@ -102,7 +105,8 @@ class DriverAgent(object):
         right_rpm = int(self._right_spd / wheel_circumference * 60)
 
         # 右电机因对称放置需要反过来
-        right_rpm = -right_rpm
+        # right_rpm = -right_rpm
+        left_rpm = -left_rpm
 
         # 防卡顿写入（不变）
         if abs(left_rpm - self.last_left_rpm) >= self.RPM_THRESHOLD:
@@ -120,12 +124,29 @@ class DriverAgent(object):
         self.driver_serial.set_motor_enable(enable=enable, motor='left')
         self.driver_serial.set_motor_enable(enable=enable, motor='right')
 
+    def brake(self):
+        """
+        紧急制动：直接写入0 RPM，忽略防卡顿阈值，保持电机使能。
+        用于 SoftSkin 异常等需要立刻停止但不失能的场景。
+        """
+        self.speed = 0
+        self.omega = 0
+        self.radius = 0
+        self._left_spd = 0
+        self._right_spd = 0
+
+        # 强制写入0并更新缓存，避免后续循环因 RPM_THRESHOLD 限制不写入
+        self.driver_serial.set_single_driver_speed(rpm=0, motor='left')
+        self.driver_serial.set_single_driver_speed(rpm=0, motor='right')
+        self.last_left_rpm = 0
+        self.last_right_rpm = 0
+
     def main_control(self):
         """
         Loop control the driver
         :return:
         """
-        while True:
+        while self.running:
             try:
                 if self.disable_mode:
                     # in record mode, deactivate the driver
@@ -142,10 +163,16 @@ class DriverAgent(object):
                 left_pos, right_pos = self.driver_serial.get_driver_position()
                 self.odo.update_pose(left_pos, right_pos)
                 # time delay for control loop
-                time.sleep(0.2)
+                time.sleep(0.1)
             except Exception as e:
                 print(f"控制循环异常: {e}")
                 time.sleep(0.2)
+
+    def stop(self):
+        """先失能电机，再退出控制循环"""
+        self.enable_driver(False)      # 1. 立即切断电机电源
+        self.running = False           # 2. 通知循环退出
+        self.thread_control.join(timeout=1)  # 3. 最多等1秒让循环自然结束
 
 
 if __name__ == "__main__":

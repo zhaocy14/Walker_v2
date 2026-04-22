@@ -37,7 +37,7 @@ class FFL(object):
 
         # 新增：速度缓冲层配置（参数内聚在SpeedBuffer类中，FFL仅选择模式）
         # 可选: 'ema' | 'scurve' | 'minjerk'
-        self.buffer_mode = 'scurve'
+        self.buffer_mode = 'minjerk'
         self._init_planners()
 
         # leg data
@@ -55,9 +55,8 @@ class FFL(object):
         self.left_max_boundary = 140  # left max value
         self.right_max_boundary = -140  # right max value
 
-        # thread event
-        self.FFLevent = threading.Event()
-        self.FFLevent.clear()
+        # 全局退出标志
+        self.running = True
 
         self.FFLthread = threading.Thread(target=self.main, args=())
         self.FFLthread.daemon = True
@@ -66,8 +65,8 @@ class FFL(object):
     # 新增：安全停止函数，电机失能
     def stop_safely(self):
         print("\n程序退出，电机失能...")
-        self.update_driver(0, 0, 0)
-        self.driver.enable_driver(False)
+        self.update_driver(0, 0, 0)  # 速度参数归零
+        self.driver.stop()  # 先失能电机，再停控制循环
 
     def _init_planners(self):
         """
@@ -126,14 +125,14 @@ class FFL(object):
 
     def main(self):
         first_run = True  # 标记是否为首次进入循环
-        while True:
-            self.FFLevent.wait()
-
+        while self.running:
             # ============================================
             # 新增：首次启动强制解锁环节（仅第一次执行）
             # ============================================
             if first_run:
                 self._wait_for_startup_unlock()
+                if not self.running:
+                    break
                 first_run = False
 
             # ============================================
@@ -141,7 +140,7 @@ class FFL(object):
             # ============================================
             if self.softskin.is_abnormal:
                 self._handle_softskin_emergency()
-                continue  # 回到循环开头，继续等待 FFLevent
+                continue  # 回到循环开头，继续下一次循环
 
             # ============================================
             # 原有正常跟随逻辑（完全不变）
@@ -228,9 +227,12 @@ class FFL(object):
         print("🔒 System locked on startup. Waiting for unlock to begin following...")
 
         # 进入监听循环，等待连续3个波峰（带2秒超时重置）
-        while not self.softskin.check_can_unlock():
+        while self.running and not self.softskin.check_can_unlock():
             self.softskin.detect_peaks()  # 检测波峰
             time.sleep(0.05)  # 50ms 检查间隔
+
+        if not self.running:
+            return
 
         # 解锁成功，重置状态
         print("✅ Startup unlocked. Beginning front following...")
@@ -239,40 +241,62 @@ class FFL(object):
     def _handle_softskin_emergency(self):
         """
         SoftSkin 异常检测后的紧急停止与解锁恢复。
-        阻塞直到检测到连续3个波峰解锁信号，然后恢复跟随。
+        直接制动（绕过缓冲层），保持电机使能作刹车，不滑动。
         """
         print("emergency stop due to abnormal softskin force")
-        self.update_driver(speed=0, omega=0, radius=0)
+
+        # 直接制动：绕过缓冲层，直接写入0 RPM，保持电机使能（刹车）
+        self.driver.brake()
 
         # 启动解锁监听模式
         self.softskin.start_unlock_monitoring()
         print("🔒 System locked. Waiting for 3 taps to unlock...")
 
         # 进入监听循环，等待连续3个波峰（带2秒超时重置）
-        while not self.softskin.check_can_unlock():
+        while self.running and not self.softskin.check_can_unlock():
             self.softskin.detect_peaks()  # 检测波峰
             time.sleep(0.05)  # 50ms 检查间隔
+
+        if not self.running:
+            return
 
         # 解锁成功，重置状态并恢复
         print("✅ unlocked, resuming front following...")
         self.softskin.reset_after_unlock()
+
+        # 清空缓冲层残余，从0平滑起步，避免恢复时突跳
+        self.planner_speed.quick_settle(0.0)
+        self.planner_omega.quick_settle(0.0)
+        self.planner_radius.quick_settle(0.0)
 
 
 if __name__ == "__main__":
     ffl = FFL()
 
 
-    # 新增：捕获Ctrl+C退出信号，自动电机失能
+    # __main__ 中的信号处理：按顺序停止所有模块
     def exit_handler(signum, frame):
+        print(f"\n[info] 收到信号 {signum}，准备退出...")
+        # 1. 通知 FFL 主循环退出
+        ffl.running = False
+        ffl.FFLthread.join(timeout=2)
+
+        # 2. 先失能电机（最高优先级）
         ffl.stop_safely()
+
+        # 3. 再停其他传感器（顺序无关，但建议按资源占用从重到轻）
+        ffl.LiDAR.stop()
+        ffl.softskin.stop()
+        ffl.button.stop()
+        if hasattr(ffl, 'camera') and ffl.camera is not None:
+            ffl.camera.stop()
         sys.exit(0)
 
-
     signal.signal(signal.SIGINT, exit_handler)
+    signal.signal(signal.SIGTERM, exit_handler)
 
     time.sleep(1)
-    ffl.FFLevent.set()
 
     # 保持主程序运行
-    while True:
-        time.sleep(1)
+    while ffl.running:
+        time.sleep(0.5)

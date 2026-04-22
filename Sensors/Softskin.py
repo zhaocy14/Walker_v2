@@ -70,8 +70,10 @@ class SoftSkin(object):
         self.last_peak_time = 0
         self.trend_state = "STABLE"  # STABLE, RISING, FALLING
 
-        # threading
+        # 退出标志与线程
+        self.running = True
         self.reading_thread = threading.Thread(target=self.softskin_main_thread, args=())
+        self.reading_thread.daemon = True
         self.reading_thread.start()
 
     def initialize_table(self):
@@ -186,27 +188,39 @@ class SoftSkin(object):
 
     def softskin_main_thread(self):
         self.serial.flush()
-        while True:
-            # the data would have 20 bytes starting with ff 00 00
-            while True:
-                # to detect the head data and command data
-                # total 3 bytes
-                head_data = self.serial.read(1).hex()
-                if head_data == "ff":
-                    command_data = self.serial.read(2).hex()
-                    if command_data == "0000":
-                        break
-            self.data_list = []
-            # read the remaining 17 bytes
-            data = self.serial.read(17)
-            # orangepi version only has 3 sensors
-            # Sequence: left, middle, right
-            for i in range(0, self.sensor_num * 2, 2):
-                self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
-            self.voltage_data = np.array(self.data_list)
-            if self.is_show:
-                print(self.voltage_data)
-            self.data_process()
+        try:
+            while self.running:
+                # the data would have 20 bytes starting with ff 00 00
+                while self.running:
+                    # to detect the head data and command data
+                    # total 3 bytes
+                    head_data = self.serial.read(1).hex()
+                    if head_data == "ff":
+                        command_data = self.serial.read(2).hex()
+                        if command_data == "0000":
+                            break
+                if not self.running:
+                    break
+                self.data_list = []
+                # read the remaining 17 bytes
+                data = self.serial.read(17)
+                # orangepi version only has 3 sensors
+                # Sequence: left, middle, right
+                for i in range(0, self.sensor_num * 2, 2):
+                    self.data_list.append(int.from_bytes(data[i:i + 2], byteorder='big', signed=False))
+                self.voltage_data = np.array(self.data_list)
+                if self.is_show:
+                    print(self.voltage_data)
+                self.data_process()
+        except Exception:
+            # 串口被外部关闭（stop()）或异常断开，线程正常退出
+            pass
+
+    def stop(self):
+        """外部调用：请求线程退出并关闭串口"""
+        self.running = False
+        if hasattr(self, 'serial') and self.serial.is_open:
+            self.serial.close()
 
 
 if __name__ == '__main__':

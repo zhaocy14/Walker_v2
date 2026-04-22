@@ -19,7 +19,8 @@ class Button(object):
         # 检查gpio命令是否存在
         self._check_gpio_command()
 
-        # 启动检测线程
+        # 退出标志与线程
+        self.running = True
         self.thread = threading.Thread(target=self.is_pressed, args=(), daemon=True)
         self.thread.start()
 
@@ -35,7 +36,7 @@ class Button(object):
         except (subprocess.CalledProcessError, FileNotFoundError):
             raise RuntimeError(
                 "错误：系统中未找到gpio命令，请先安装wiringOP底层库！\n"
-                "安装方法：git clone https://github.com/orangepi-xunlong/wiringOP.git && cd wiringOP && sudo ./build"
+                "安装方法：git clone https://github.com/orangepi-xunlong/wiringOP.git  && cd wiringOP && sudo ./build"
             )
 
     def _read_gpio(self) -> int:
@@ -64,10 +65,16 @@ class Button(object):
         循环检测按钮状态（低电平有效，active low）
         :return: True if pressed, False otherwise
         """
-        while True:
+        while self.running:
             state = self._read_gpio()
             self.pressed = state  # 按钮按压时为低电平（0），故pressed=True
             time.sleep(0.02)  # 20ms检测一次，平衡响应速度和资源占用
+
+    def stop(self):
+        """请求线程退出"""
+        self.running = False
+        self.thread.join(timeout=0.5)
+
 
 if __name__ == "__main__":
     # 检查是否为root权限（gpio命令需要sudo，否则可能读取失败）
