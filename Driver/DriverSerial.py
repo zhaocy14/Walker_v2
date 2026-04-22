@@ -306,44 +306,74 @@ class DriversSerial(object):
         self._write_register(address=0x00a4, value=0, action="清除电机报警状态")
 
 
-
-
 if __name__ == "__main__":
     driver = DriversSerial(port_key='/dev/ttyS6')
-    # a loop for reading and logging driver's position, speed
 
+    # 先使能
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
+    time.sleep(0.2)
 
-    driver.set_single_driver_speed(rpm=-30, motor='left')
-    driver.set_single_driver_speed(rpm=30, motor='right')
-    time.sleep(5)
-    driver.set_single_driver_speed(rpm=0, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(2)
-    #
-    driver.set_single_driver_speed(rpm=30, motor='left')
-    driver.set_single_driver_speed(rpm=-30, motor='right')
-    time.sleep(5)
-    driver.set_single_driver_speed(rpm=-20, motor='left')
-    driver.set_single_driver_speed(rpm=20, motor='right')
-    time.sleep(2)
-    driver.set_single_driver_speed(rpm=20, motor='left')
-    driver.set_single_driver_speed(rpm=20, motor='right')
-    time.sleep(5)
 
-    #test dangerous rpm:
-    # driver.set_single_driver_speed(rpm=500, motor='left')
-    # driver.set_single_driver_speed(rpm=500, motor='right')
-    # time.sleep(2)
-    # driver.set_single_driver_speed(rpm=-500, motor='left')
-    # driver.set_single_driver_speed(rpm=-500, motor='right')
-    # time.sleep(2)
-    # stop:
-    driver.set_single_driver_speed(rpm=0, motor='left')
-    driver.set_single_driver_speed(rpm=0, motor='right')
-    time.sleep(1)
+    def test_motor_direction(motor: str, test_rpm: int = 15, duration: float = 1.0):
+        """
+        测试单个电机的方向：发送 +test_rpm，记录编码器变化。
+        """
+        print(f"\n========== 测试 {motor} 电机 ==========")
+
+        # 1. 读初始位置
+        pos_start, _ = driver.get_driver_position() if motor == 'left' else (None, None)
+        # get_driver_position 返回 (left, right)，需要根据 motor 取对应值
+        l0, r0 = driver.get_driver_position()
+        start = l0 if motor == 'left' else r0
+        print(f"[{motor}] 初始编码器位置: {start}")
+
+        # 2. 发送正转指令
+        print(f"[{motor}] 发送 RPM = +{test_rpm}")
+        driver.set_single_driver_speed(rpm=test_rpm, motor=motor)
+        time.sleep(duration)
+
+        # 3. 读最终位置
+        l1, r1 = driver.get_driver_position()
+        end = l1 if motor == 'left' else r1
+        print(f"[{motor}] 最终编码器位置: {end}")
+
+        # 4. 停止该电机
+        driver.set_single_driver_speed(rpm=0, motor=motor)
+        time.sleep(0.3)
+
+        # 5. 计算差值
+        delta = end - start
+        print(f"[{motor}] 编码器变化量 Δ = {delta}")
+
+        if delta > 0:
+            print(f"[{motor}] 结论: 发送 +RPM 时，编码器 **增加** (正值)")
+        elif delta < 0:
+            print(f"[{motor}] 结论: 发送 +RPM 时，编码器 **减少** (负值)")
+        else:
+            print(f"[{motor}] 结论: 编码器 **无变化**，电机可能未转动或读取失败")
+
+        return delta
+
+
+    # 分别测试左右电机
+    delta_left = test_motor_direction('left', test_rpm=15, duration=1.0)
+    delta_right = test_motor_direction('right', test_rpm=15, duration=1.0)
+
+    # 综合判断
+    print("\n========== 综合判断 ==========")
+    print(f"left Δ = {delta_left}, right Δ = {delta_right}")
+
+    same_sign = (delta_left > 0 and delta_right > 0) or (delta_left < 0 and delta_right < 0)
+    if same_sign:
+        print("结论: 两电机同向变化 → 对称安装下会原地打转，需要给其中一个软件取反")
+        if abs(delta_left) <= abs(delta_right):
+            print("建议: flip_left = True")
+        else:
+            print("建议: flip_right = True")
+    else:
+        print("结论: 两电机反向变化 → 已自然对称，无需软件取反")
+
+    # 失能
     driver.set_motor_enable(enable=False, motor='left')
     driver.set_motor_enable(enable=False, motor='right')
-
-    # print(f"电机当前绝对位置: {driver.get_driver_position()}, 当前速度: {driver.get_motor_speed()}")
