@@ -105,6 +105,7 @@ class DriversSerial(object):
     def get_driver_position(self):
         """
         Get the status of the driver.
+        val: 0~4294967295
         :return: status
         """
         l_regs = self._read_register(address=0x0004, count=2, action="读取左电机位置位置", motor='left')
@@ -309,70 +310,99 @@ class DriversSerial(object):
 if __name__ == "__main__":
     driver = DriversSerial(port_key='/dev/ttyS6')
 
+
+    def delta_encoder(start, end):
+        """处理 32 位无符号编码器回绕（范围 0~4294967295）"""
+        diff = end - start
+        if diff > 2147483647:  # 超过 INT32_MAX，说明反向回绕
+            diff -= 4294967296
+        elif diff < -2147483648:  # 小于 INT32_MIN，说明正向回绕
+            diff += 4294967296
+        return diff
+
+
     # 先使能
     driver.set_motor_enable(enable=True, motor='left')
     driver.set_motor_enable(enable=True, motor='right')
     time.sleep(0.2)
 
 
-    def test_motor_direction(motor: str, test_rpm: int = 15, duration: float = 1.0):
+    def test_motor(motor: str, test_rpm: int = 15, duration: float = 1.0):
         """
-        测试单个电机的方向：发送 +test_rpm，记录编码器变化。
+        测试单个电机：编码器方向 + 实际转速反馈验证
         """
         print(f"\n========== 测试 {motor} 电机 ==========")
 
-        # 1. 读初始位置
-        pos_start, _ = driver.get_driver_position() if motor == 'left' else (None, None)
-        # get_driver_position 返回 (left, right)，需要根据 motor 取对应值
+        # 1. 读初始状态
         l0, r0 = driver.get_driver_position()
-        start = l0 if motor == 'left' else r0
-        print(f"[{motor}] 初始编码器位置: {start}")
+        start_pos = l0 if motor == 'left' else r0
+        l_spd0, r_spd0 = driver.get_motor_speed()
+        start_spd = l_spd0 if motor == 'left' else r_spd0
+        print(f"[{motor}] 初始编码器: {start_pos}, 初始转速反馈: {start_spd} rpm")
 
         # 2. 发送正转指令
-        print(f"[{motor}] 发送 RPM = +{test_rpm}")
+        print(f"[{motor}] 发送设定 RPM = +{test_rpm}")
         driver.set_single_driver_speed(rpm=test_rpm, motor=motor)
-        time.sleep(duration)
 
-        # 3. 读最终位置
+        # 3. 等待稳定后读取实际转速
+        time.sleep(0.3)
+        l_spd1, r_spd1 = driver.get_motor_speed()
+        mid_spd = l_spd1 if motor == 'left' else r_spd1
+        print(f"[{motor}] 0.3秒后实际转速反馈: {mid_spd} rpm")
+
+        time.sleep(duration - 0.3)
+        l_spd2, r_spd2 = driver.get_motor_speed()
+        end_spd = l_spd2 if motor == 'left' else r_spd2
+        print(f"[{motor}] {duration}秒后实际转速反馈: {end_spd} rpm")
+
+        # 4. 读最终编码器位置并停止
         l1, r1 = driver.get_driver_position()
-        end = l1 if motor == 'left' else r1
-        print(f"[{motor}] 最终编码器位置: {end}")
-
-        # 4. 停止该电机
+        end_pos = l1 if motor == 'left' else r1
         driver.set_single_driver_speed(rpm=0, motor=motor)
         time.sleep(0.3)
 
-        # 5. 计算差值
-        delta = end - start
-        print(f"[{motor}] 编码器变化量 Δ = {delta}")
+        # 5. 计算带回绕保护的差值
+        delta = delta_encoder(start_pos, end_pos)
+        print(f"[{motor}] 最终编码器: {end_pos}, 变化量 Δ = {delta}")
 
-        if delta > 0:
-            print(f"[{motor}] 结论: 发送 +RPM 时，编码器 **增加** (正值)")
-        elif delta < 0:
-            print(f"[{motor}] 结论: 发送 +RPM 时，编码器 **减少** (负值)")
+        # 6. 转速一致性判断
+        print(f"[{motor}] 设定值 vs 实际值: {test_rpm} vs {end_spd}")
+        if abs(end_spd - test_rpm) <= 3:
+            print(f"[{motor}] 转速反馈 ✓ 基本一致")
+        elif abs(end_spd) < 2 and test_rpm != 0:
+            print(f"[{motor}] 转速反馈 ✗ 电机未转或反馈异常")
         else:
-            print(f"[{motor}] 结论: 编码器 **无变化**，电机可能未转动或读取失败")
+            print(f"[{motor}] 转速反馈 △ 有偏差，注意检查")
 
-        return delta
+        # 7. 方向判断
+        if delta > 0:
+            print(f"[{motor}] 方向: 发送 +RPM 时编码器增加")
+        elif delta < 0:
+            print(f"[{motor}] 方向: 发送 +RPM 时编码器减少")
+        else:
+            print(f"[{motor}] 方向: 编码器无变化")
+
+        return delta, end_spd
 
 
     # 分别测试左右电机
-    delta_left = test_motor_direction('left', test_rpm=15, duration=1.0)
-    delta_right = test_motor_direction('right', test_rpm=15, duration=1.0)
+    delta_left, spd_left = test_motor('left', test_rpm=20, duration=1.0)
+    delta_right, spd_right = test_motor('right', test_rpm=20, duration=1.0)
 
-    # 综合判断
+    # 综合判断对称性
     print("\n========== 综合判断 ==========")
-    print(f"left Δ = {delta_left}, right Δ = {delta_right}")
+    print(f"left:  Δpos={delta_left}, 实际转速={spd_left}")
+    print(f"right: Δpos={delta_right}, 实际转速={spd_right}")
 
     same_sign = (delta_left > 0 and delta_right > 0) or (delta_left < 0 and delta_right < 0)
     if same_sign:
-        print("结论: 两电机同向变化 → 对称安装下会原地打转，需要给其中一个软件取反")
+        print("结论: 两编码器同向变化 → 需要给其中一个软件取反")
         if abs(delta_left) <= abs(delta_right):
             print("建议: flip_left = True")
         else:
             print("建议: flip_right = True")
     else:
-        print("结论: 两电机反向变化 → 已自然对称，无需软件取反")
+        print("结论: 两编码器反向变化 → 已自然对称，无需软件取反")
 
     # 失能
     driver.set_motor_enable(enable=False, motor='left')

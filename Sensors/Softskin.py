@@ -21,11 +21,27 @@ class SoftSkin(object):
             port_name, _ = detect_serials(port_key=SOFTSKIN_LOCATION,
                                           sensor_name="Softskin")  # Arduino Mega 2560 ttyACM0
         self.serial = serial.Serial(port_name, SOFTSKIN_BAUDRATE, timeout=None)
+
+        # ========== 新增：等待硬件稳定并清空启动前的脏数据 ==========
+        time.sleep(0.3)
+        self.serial.reset_input_buffer()
+
+        # ========== 新增：强制设置主动上传模式（防止模块处于问答模式） ==========
+        upload_cmd = bytes.fromhex("FF7840000000000000000048")
+        self.serial.write(upload_cmd)
+        self.serial.flush()
+        time.sleep(0.1)
+
         # 转换设置读取速度的十六进制指令为字节类型
-        # set_speed_cmd = bytes.fromhex("FF820000210000000000005D") # 30Hz
-        set_speed_cmd = bytes.fromhex("FF820000640000000000001A") # 10Hz
+        set_speed_cmd = bytes.fromhex("FF820000210000000000005D") # 30Hz
+        # set_speed_cmd = bytes.fromhex("FF820000640000000000001A") # 10Hz
         # 向串口写入指令
         self.serial.write(set_speed_cmd)
+        self.serial.flush()
+        time.sleep(0.1)
+
+        # 再次清空缓冲区，丢弃命令响应或杂散字节
+        self.serial.reset_input_buffer()
         print("Softskin serial port:", port_name)
 
         # sensor number
@@ -188,6 +204,8 @@ class SoftSkin(object):
 
     def softskin_main_thread(self):
         self.serial.flush()
+        # ========== 新增：线程启动时再次清空缓冲区，丢弃残留数据 ==========
+        self.serial.reset_input_buffer()
         try:
             while self.running:
                 # the data would have 20 bytes starting with ff 00 00

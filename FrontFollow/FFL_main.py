@@ -126,6 +126,7 @@ class FFL(object):
     def main(self):
         first_run = True  # 标记是否为首次进入循环
         while self.running:
+            time.sleep(0.1)
             # ============================================
             # 新增：首次启动强制解锁环节（仅第一次执行）
             # ============================================
@@ -153,8 +154,11 @@ class FFL(object):
                 # 优化：先判断无腿，再计算中心，避免无效数据运算
                 if self.left_leg[0] < -1500 or self.right_leg[0] < -1500:
                     print("no leg detected, stop")
-                    self.update_driver(speed=0, omega=0, radius=0)
-                    time.sleep(0.1)
+                    self.driver.brake()  # ← 直接写入 0 RPM，绕过缓冲层
+                    # 同步清空缓冲层内部状态，避免恢复时突跳
+                    self.planner_speed.quick_settle(0.0)
+                    self.planner_omega.quick_settle(0.0)
+                    self.planner_radius.quick_settle(0.0)
                     continue
 
                 self.human_center = (self.left_leg + self.right_leg) / 2
@@ -213,8 +217,6 @@ class FFL(object):
                     print("stop")
                     self.update_driver(speed=0, omega=0, radius=0)
 
-            time.sleep(0.1)
-
     # ============================================
     # 新增：解锁逻辑封装
     # ============================================
@@ -223,6 +225,7 @@ class FFL(object):
         首次启动时的强制解锁等待。
         阻塞直到检测到连续3个波峰解锁信号。
         """
+        self.driver.enable_driver(False)  # ← 新增：首次启动先失能，安全等待解锁
         self.softskin.start_unlock_monitoring()
         print("🔒 System locked on startup. Waiting for unlock to begin following...")
 
@@ -232,11 +235,12 @@ class FFL(object):
             time.sleep(0.05)  # 50ms 检查间隔
 
         if not self.running:
-            return
+            return  # 被外部终止，保持失能状态退出
 
-        # 解锁成功，重置状态
+        # 解锁成功，重置状态并恢复电机
         print("✅ Startup unlocked. Beginning front following...")
         self.softskin.reset_after_unlock()
+        self.driver.enable_driver(True)  # ← 新增：解锁成功，恢复电机使能
 
     def _handle_softskin_emergency(self):
         """
