@@ -300,7 +300,9 @@ class LiDAR_YDLIDAR:
             self.lidar.disconnecting()
 
 if __name__ == "__main__":
-    lidar = LiDAR_YDLIDAR(text_show=False)
+    lidar = LiDAR_YDLIDAR(text_show=True)
+    while True:
+        time.sleep(1)
     # just for checking the LiDAR
     # lidar_instance = LiDAR(is_zmq=False)
     # lidar_instance.python_scan(is_show=True)
