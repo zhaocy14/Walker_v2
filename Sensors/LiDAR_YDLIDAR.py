@@ -124,7 +124,7 @@ class LiDAR_YDLIDAR:
             cv2.imshow("LiDAR", im)
             cv2.waitKey(1)
 
-    def detect_leg(self, kmeans: KMeans, is_save:bool=False) -> (np.ndarray, np.ndarray):
+    def detect_leg(self, kmeans: KMeans, is_save: bool = False) -> (np.ndarray, np.ndarray):
         """
         Analyze the top-view map. Using Kmeans to
         :param kmeans: A Kmeans module
@@ -136,12 +136,13 @@ class LiDAR_YDLIDAR:
         # then as the half_size of the detecting area is known
         # then convert to the matrix axis:
         self.leg_img[:, :] = self.scan_img[HALF_SIZE - WALKER_TOP_BOUNDARY:HALF_SIZE + WALKER_BOTTOM_BOUNDARY,
-                        HALF_SIZE - WALKER_LEFT_BOUNDARY:HALF_SIZE + WALKER_RIGHT_BOUNDARY]
+        HALF_SIZE - WALKER_LEFT_BOUNDARY:HALF_SIZE + WALKER_RIGHT_BOUNDARY]
 
         # remove the box area detection
         # basic idea is simply removing the box related rows
         # as you don't need to count the points outside the walker boundary right?
-        self.leg_img[0:WALKER_TOP_BOUNDARY + self.walker_box, :] = 0 # this line is to wipe out the scanning inside the main box
+        self.leg_img[
+            0:WALKER_TOP_BOUNDARY + self.walker_box, :] = 0  # this line is to wipe out the scanning inside the main box
 
         # then you need to filter out the rear wheel area
         # actually, most of the time the leg will block the rear wheel
@@ -151,14 +152,16 @@ class LiDAR_YDLIDAR:
         rear_right_wheel_col_idx = -WALKER_REAR_WHEEL_COL_IDX
         rear_wheel_width = WALKER_REAR_WHEEL_WIDTH
 
+        # clear left rear wheel column
         self.leg_img[
-        rear_wheel_row_idx-WALKER_REAR_WHEEL_RADIUS:rear_wheel_row_idx+WALKER_REAR_WHEEL_RADIUS,
-        rear_left_wheel_col_idx-rear_wheel_width:rear_left_wheel_col_idx+rear_wheel_width
+            rear_wheel_row_idx - WALKER_REAR_WHEEL_RADIUS:rear_wheel_row_idx + WALKER_REAR_WHEEL_RADIUS,
+            rear_left_wheel_col_idx - rear_wheel_width:rear_left_wheel_col_idx + rear_wheel_width
         ] = 0
 
+        # clear right rear wheel column
         self.leg_img[
-        rear_wheel_row_idx-WALKER_REAR_WHEEL_RADIUS:rear_wheel_row_idx+WALKER_REAR_WHEEL_RADIUS,
-        rear_right_wheel_col_idx-rear_wheel_width:rear_right_wheel_col_idx+rear_wheel_width
+            rear_wheel_row_idx - WALKER_REAR_WHEEL_RADIUS:rear_wheel_row_idx + WALKER_REAR_WHEEL_RADIUS,
+            rear_right_wheel_col_idx - rear_wheel_width:rear_right_wheel_col_idx + rear_wheel_width
         ] = 0
 
         # then do the clustering(k-means)
@@ -176,6 +179,8 @@ class LiDAR_YDLIDAR:
                 # self.leg_img[self.walker_tb - 1:self.walker_tb + 1,
                 # self.walker_lb - 1:self.walker_lb + 1] = 0
                 im_show = self.leg_img
+                im_show[
+                    WALKER_TOP_BOUNDARY - 5:WALKER_TOP_BOUNDARY + 5, WALKER_LEFT_BOUNDARY - 5:WALKER_LEFT_BOUNDARY + 5] = 1
                 if self.cv_show:
                     # transform to Image to change the size of the print image
                     im_show = Image.fromarray(im_show)
